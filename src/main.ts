@@ -49,10 +49,10 @@ export default class InfographicPlugin extends Plugin {
 		void view.setState(state, {history: false});
 	}
 
-	private registerCommands(): void {
+		private registerCommands(): void {
 		this.addCommand({
 			id: "insert-infographic-template",
-			name: "Insert infographic template",
+			name: "Insert template",
 			editorCallback: (editor: Editor) => {
 				const cursor = editor.getCursor();
 				const template = "```infographic\n" + INFOGRAPHIC_TEMPLATE + "\n```\n";
@@ -66,7 +66,7 @@ export default class InfographicPlugin extends Plugin {
 
 		this.addCommand({
 			id: "refresh-infographics",
-			name: "Refresh infographics in current note",
+			name: "Refresh in current note",
 			checkCallback: (checking: boolean) => {
 				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (!view) return false;
