@@ -12,6 +12,8 @@
   <img src="https://img.shields.io/github/last-commit/shuuul/obsidian-infographic" alt="GitHub last commit">
 </p>
 
+<img src="assets/screenshot-infographi-plugin.png" alt="Obsidian Infographic Plugin Screenshot" width="800">
+
 Render [AntV Infographic](https://github.com/antvis/Infographic) visualizations directly in your Obsidian notes using fenced code blocks. ✨
 
 ## ✨ Features

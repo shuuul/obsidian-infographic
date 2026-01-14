@@ -12,6 +12,8 @@
   <img src="https://img.shields.io/github/last-commit/shuuul/obsidian-infographic" alt="GitHub 最后提交">
 </p>
 
+<img src="assets/screenshot-infographi-plugin.png" alt="Obsidian 信息图表插件截图" width="800">
+
 在 Obsidian 笔记中直接渲染 [AntV Infographic](https://github.com/antvis/Infographic) 可视化图表，使用 fenced 代码块。✨
 
 ## ✨ 功能特性
