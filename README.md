@@ -1,6 +1,11 @@
 <h1 align="center">📊 Obsidian Infographic Plugin</h1>
 
 <p align="center">
+  <a href="README_CN.md">简体中文</a> ·
+  <a href="README.md">English</a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/github/downloads/shuuul/obsidian-infographic/total" alt="GitHub Downloads">
   <img src="https://img.shields.io/github/license/shuuul/obsidian-infographic" alt="License">
   <img src="https://img.shields.io/github/v/release/shuuul/obsidian-infographic" alt="GitHub release">
@@ -184,7 +189,7 @@ Each rendered infographic shows a toolbar:
 
 ## 🤖 Agent Skill
 
-This plugin is also available as an **OhMyOpenCode Agent Skill** for creating AntV Infographic visualizations in Obsidian.
+This plugin is also available as an **Agent Skill** for creating AntV Infographic visualizations in Obsidian.
 
 ### Skill Location
 
