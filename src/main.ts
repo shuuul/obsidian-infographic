@@ -1,4 +1,4 @@
-import {Editor, MarkdownView, Plugin} from "obsidian";
+import {Editor, MarkdownView, Notice, Plugin} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
@@ -44,7 +44,7 @@ export default class InfographicPlugin extends Plugin {
 	}
 
 	private refreshView(view: MarkdownView): void {
-		// Force re-render by triggering a view state refresh
+		// Force re-render by updating view state
 		const state = view.getState();
 		void view.setState(state, {history: false});
 	}
@@ -117,15 +117,19 @@ export default class InfographicPlugin extends Plugin {
 		});
 		ctx.addChild(renderChild);
 
-		// Always show toolbar with Edit and Export buttons
+		// Always show toolbar with Copy and Export buttons
 		const toolbar = container.createDiv({cls: "infographic-toolbar"});
 		
-		const sourceBtn = toolbar.createEl("button", {
-			text: "Edit",
+		const copyBtn = toolbar.createEl("button", {
+			text: "Copy",
 			cls: "infographic-toolbar-btn",
 		});
-		sourceBtn.addEventListener("click", () => {
-			new SourceCodeModal(this.app, source).open();
+		copyBtn.addEventListener("click", () => {
+			navigator.clipboard.writeText(source.trim()).then(() => {
+				new Notice("Copied to clipboard");
+			}).catch(() => {
+				new Notice("Failed to copy");
+			});
 		});
 
 		const exportBtn = toolbar.createEl("button", {
