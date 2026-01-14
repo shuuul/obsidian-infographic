@@ -11,7 +11,7 @@ metadata:
   version: "0.1.0"
 ---
 
-# Obsidian Infographics
+# Infographics
 
 Render AntV Infographic visualizations in Obsidian markdown using fenced code blocks.
 

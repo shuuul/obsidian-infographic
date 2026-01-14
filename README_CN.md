@@ -36,7 +36,7 @@
    https://github.com/shuuul/obsidian-infographic
    ```
 4. BRAT 将下载并保持插件更新
-5. 从社区插件中启用 **Obsidian Infographic**
+5. 从社区插件中启用 **Infographic**
 
 ### 从 Obsidian 社区插件安装
 
@@ -171,7 +171,7 @@ data
 
 ## ⚙️ 配置
 
-通过 **设置** → **社区插件** → **Obsidian Infographic** 访问设置。
+通过 **设置** → **社区插件** → **Infographic** 访问设置。
 
 | 设置 | 描述 | 默认值 |
 |---------|-------------|---------|

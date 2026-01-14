@@ -36,7 +36,7 @@ For beta/development versions, install using [BRAT](https://github.com/TfTHacker
    https://github.com/shuuul/obsidian-infographic
    ```
 4. BRAT will download and keep the plugin updated
-5. Enable **Obsidian Infographic** from Community Plugins
+5. Enable **Infographic** from Community Plugins
 
 ### From Obsidian Community Plugins
 
@@ -171,7 +171,7 @@ data
 
 ## ⚙️ Configuration
 
-Access settings via **Settings** → **Community plugins** → **Obsidian Infographic**.
+Access settings via **Settings** → **Community plugins** → **Infographic**.
 
 | Setting | Description | Default |
 |---------|-------------|---------|
