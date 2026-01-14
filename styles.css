@@ -3,6 +3,10 @@
 	margin: 1em 0;
 }
 
+.infographic-hidden {
+	display: none;
+}
+
 .infographic-toolbar {
 	position: absolute;
 	top: 4px;

@@ -20,10 +20,10 @@ export class ExportModal extends Modal {
 		const buttonContainer = contentEl.createDiv({cls: "infographic-export-buttons"});
 
 		const pngButton = buttonContainer.createEl("button", {text: "Export as PNG"});
-		pngButton.addEventListener("click", () => this.exportAsPng());
+		pngButton.addEventListener("click", () => void this.exportAsPng());
 
 		const svgButton = buttonContainer.createEl("button", {text: "Export as SVG"});
-		svgButton.addEventListener("click", () => this.exportAsSvg());
+		svgButton.addEventListener("click", () => void this.exportAsSvg());
 
 		const cancelButton = buttonContainer.createEl("button", {text: "Cancel"});
 		cancelButton.addEventListener("click", () => this.close());

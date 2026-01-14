@@ -81,22 +81,22 @@ Create an Obsidian plugin that renders AntV Infographic visualizations from fenc
 ## Phase 4: Commands & Integration
 
 ### 4.1 Plugin Commands
-- [ ] Add command: "Render all infographics in current note"
-- [ ] Add command: "Open source code for current infographic"
-- [ ] Add command: "Export infographic as image"
-- [ ] Add command: "Toggle between rendered/source view"
+- [x] Add command: "Insert infographic template"
+- [x] Add command: "Refresh infographics in current note"
+- [ ] Add command: "Export infographic as image" (requires tracking active infographic)
+- [ ] Add command: "Open source code for current infographic" (requires tracking active infographic)
 
 ### 4.2 Editor Integration
-- [ ] Add syntax highlighting for ```infographic blocks
-- [ ] Implement editor decorations for infographic blocks
+- [ ] Add syntax highlighting for ```infographic blocks (requires CodeMirror extension)
+- [ ] Implement editor decorations for infographic blocks (requires CodeMirror extension)
 - [ ] Support quick insert template for new infographics
-- [ ] Add command palette integration
+- [x] Add command palette integration (commands registered in Phase 4.1)
 
 ### 4.3 Workspace Events
-- [ ] Handle file open/close events
-- [ ] Re-render when note becomes active
-- [ ] Clean up renderers when switching notes
-- [ ] Support live preview and reading mode
+- [x] Handle file open/close events (via MarkdownRenderChild lifecycle)
+- [x] Re-render when note becomes active (via ResizeObserver)
+- [x] Clean up renderers when switching notes (via onunload())
+- [x] Support live preview and reading mode (registerMarkdownCodeBlockProcessor)
 
 ## Phase 5: Testing & Quality Assurance
 

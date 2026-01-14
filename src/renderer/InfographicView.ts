@@ -1,5 +1,5 @@
 import {MarkdownRenderChild} from "obsidian";
-import {Infographic} from "@antv/infographic";
+import {Infographic, type InfographicOptions} from "@antv/infographic";
 import type {ThemeSetting} from "../settings";
 
 export interface RenderOptions {
@@ -9,6 +9,14 @@ export interface RenderOptions {
 	maxHeight: number;
 	theme: ThemeSetting;
 	isDarkMode: boolean;
+}
+
+interface ParsedInfographicConfig {
+	width?: number;
+	height?: number;
+	theme?: string;
+	template?: string;
+	data?: InfographicOptions["data"];
 }
 
 export class InfographicRenderChild extends MarkdownRenderChild {
@@ -62,7 +70,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 
 		try {
 			if (this.options.isJson) {
-				const parsed = JSON.parse(this.options.content);
+				const parsed = JSON.parse(this.options.content) as ParsedInfographicConfig;
 				this.infographic = new Infographic({
 					container: this.containerEl,
 					width: parsed.width ?? this.options.maxWidth,
@@ -121,7 +129,9 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		if (this.infographic) {
 			try {
 				this.infographic.destroy();
-			} catch {}
+			} catch {
+				// AntV Infographic may throw during cleanup if already destroyed
+			}
 			this.infographic = null;
 		}
 	}

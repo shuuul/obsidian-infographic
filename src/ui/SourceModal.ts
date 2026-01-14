@@ -52,7 +52,7 @@ export class SourceCodeModal extends Modal {
 		const trimmed = this.source.trim();
 		if (trimmed.startsWith("{")) {
 			try {
-				const parsed = JSON.parse(trimmed);
+				const parsed: unknown = JSON.parse(trimmed);
 				return JSON.stringify(parsed, null, 2);
 			} catch {
 				return this.source;

@@ -1,8 +1,19 @@
-import {Plugin} from "obsidian";
+import {Editor, MarkdownView, Plugin} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
 import {SourceCodeModal, ExportModal} from "./ui";
+
+const INFOGRAPHIC_TEMPLATE = `{
+  "template": "list-row-simple-horizontal-arrow",
+  "data": {
+    "items": [
+      { "label": "Step 1", "desc": "Description" },
+      { "label": "Step 2", "desc": "Description" },
+      { "label": "Step 3", "desc": "Description" }
+    ]
+  }
+}`;
 
 export default class InfographicPlugin extends Plugin {
 	settings: InfographicSettings;
@@ -15,6 +26,39 @@ export default class InfographicPlugin extends Plugin {
 		});
 
 		this.addSettingTab(new InfographicSettingTab(this.app, this));
+
+		this.registerCommands();
+	}
+
+	private registerCommands(): void {
+		this.addCommand({
+			id: "insert-infographic-template",
+			name: "Insert infographic template",
+			editorCallback: (editor: Editor) => {
+				const cursor = editor.getCursor();
+				const template = "```infographic\n" + INFOGRAPHIC_TEMPLATE + "\n```\n";
+				editor.replaceRange(template, cursor);
+				editor.setCursor({
+					line: cursor.line + 2,
+					ch: 0,
+				});
+			},
+		});
+
+		this.addCommand({
+			id: "refresh-infographics",
+			name: "Refresh infographics in current note",
+			checkCallback: (checking: boolean) => {
+				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+				if (!view) return false;
+				if (checking) return true;
+
+				// Force re-render by triggering a view mode refresh
+				const state = view.getState();
+				void view.setState(state, {history: false});
+				return true;
+			},
+		});
 	}
 
 	private isDarkMode(): boolean {
@@ -82,16 +126,17 @@ export default class InfographicPlugin extends Plugin {
 		switch (this.settings.errorBehavior) {
 			case "hide":
 				el.empty();
-				el.style.display = "none";
+				el.addClass("infographic-hidden");
 				break;
-			case "show-error":
+			case "show-error": {
 				el.empty();
 				el.addClass("infographic-error-block");
 				const errorMsg = el.createDiv({cls: "infographic-error-header"});
 				errorMsg.setText(`Error: ${error}`);
 				break;
+			}
 			case "show-code":
-			default:
+			default: {
 				el.empty();
 				el.addClass("infographic-error-block");
 				const errorHeader = el.createDiv({cls: "infographic-error-header"});
@@ -100,6 +145,7 @@ export default class InfographicPlugin extends Plugin {
 				const code = pre.createEl("code");
 				code.setText(source);
 				break;
+			}
 		}
 	}
 
