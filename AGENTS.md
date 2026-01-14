@@ -2,7 +2,7 @@
 
 **Generated:** 2026-01-14
 **Branch:** main
-**Version:** 0.1.6
+**Version:** 0.1.7
 
 ## OVERVIEW
 Obsidian plugin that renders AntV Infographic visualizations from fenced `infographic` code blocks. Integrates `@antv/infographic` library into Obsidian's markdown preview.
@@ -76,11 +76,11 @@ npm run version   # Bump version, update manifests
 
 ### Automated (GitHub Actions)
 
-When you push a tag matching `v*`, GitHub Actions automatically:
+When you push a tag matching `*` (no `v` prefix), GitHub Actions automatically:
 1. Builds the plugin
 2. Creates and publishes a release with `main.js`, `manifest.json`, `styles.css`
 
-Tag format: `v0.x.x` (e.g., `v0.1.5`)
+Tag format: `0.x.x` (e.g., `0.1.5`)
 
 **Important:** Before creating a tag, ensure `manifest.json` version matches the tag version.
 
@@ -97,12 +97,12 @@ git add -A && git commit -m "Your commit message"
 git push origin
 
 # 4. Create and push tag
-git tag -a v0.x.x -m "Release v0.x.x"
-git push origin v0.x.x
+git tag -a 0.x.x -m "Release 0.x.x"
+git push origin 0.x.x
 
 # 5. GitHub Actions will create the release automatically
 # OR create manually:
-gh release create v0.x.x --title "v0.x.x" --notes "Release notes" main.js manifest.json styles.css
+gh release create 0.x.x --title "0.x.x" --notes "Release notes" main.js manifest.json styles.css
 ```
 
 **Version bump:**
