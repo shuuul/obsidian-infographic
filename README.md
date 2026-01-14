@@ -42,7 +42,6 @@ Create an infographic using a fenced code block with the `infographic` language:
 
 ### JSON Format
 
-```markdown
 ```infographic
 {
   "template": "list-row-simple-horizontal-arrow",
@@ -55,11 +54,9 @@ Create an infographic using a fenced code block with the `infographic` language:
   }
 }
 ```
-```
 
 ### DSL Format
 
-```markdown
 ```infographic
 infographic list-row-simple-horizontal-arrow
 data
@@ -71,13 +68,11 @@ data
     - label Step 3
       desc Complete
 ```
-```
 
 ## 📋 Template Examples
 
 ### Timeline
 
-```markdown
 ```infographic
 {
   "template": "sequence-timeline",
@@ -91,11 +86,9 @@ data
   }
 }
 ```
-```
 
 ### Hierarchy
 
-```markdown
 ```infographic
 {
   "template": "hierarchy-structure",
@@ -113,11 +106,9 @@ data
   }
 }
 ```
-```
 
 ### Comparison
 
-```markdown
 ```infographic
 {
   "template": "compare-binary",
@@ -129,11 +120,9 @@ data
   }
 }
 ```
-```
 
 ### Chart
 
-```markdown
 ```infographic
 {
   "template": "chart-bar",
@@ -146,11 +135,9 @@ data
   }
 }
 ```
-```
 
 ### With Icons
 
-```markdown
 ```infographic
 {
   "template": "list-row-simple-horizontal-arrow",
@@ -162,7 +149,6 @@ data
     ]
   }
 }
-```
 ```
 
 ## ⚙️ Configuration
