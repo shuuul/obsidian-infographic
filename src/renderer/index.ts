@@ -1,0 +1,1 @@
+export {InfographicRenderChild} from "./InfographicView";
