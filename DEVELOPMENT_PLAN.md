@@ -435,7 +435,7 @@ gh release create 0.1.0 main.js manifest.json styles.css \
 3. Create pull request to obsidian-releases
 
 4. Ensure your repo meets requirements:
-   - Has a LICENSE file (currently 0-BSD ✓)
+    - Has a LICENSE file (currently Apache-2.0 ✓)
    - Has a README.md ✓
    - Has manifest.json at root ✓
    - Has releases with main.js, manifest.json, styles.css ✓
