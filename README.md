@@ -182,6 +182,50 @@ Each rendered infographic shows a toolbar:
 - **Copy** - Copy source code to clipboard
 - **Export** - Save as SVG or PNG
 
+## 🤖 Agent Skill
+
+This plugin is also available as an **OhMyOpenCode Agent Skill** for creating AntV Infographic visualizations in Obsidian.
+
+### Skill Location
+
+```
+skills/obsidian-infographics/
+├── SKILL.md              # Skill definition and usage guide
+└── reference/
+    └── GALLERY.md        # Complete template catalog with examples
+```
+
+### Usage in Agents
+
+When used as a skill, AI agents can generate AntV Infographic visualizations by outputting `infographic` code blocks in Obsidian markdown:
+
+```infographic
+{
+  "template": "list-row-simple-horizontal-arrow",
+  "data": {
+    "items": [
+      { "label": "Step 1", "desc": "Start" },
+      { "label": "Step 2", "desc": "In Progress" },
+      { "label": "Step 3", "desc": "Complete" }
+    ]
+  }
+}
+```
+
+### Available Templates (200+)
+
+| Category | Templates |
+|----------|-----------|
+| **Lists** | list-row-simple-horizontal-arrow, list-row-simple-horizontal, list-column, list-grid, list-pyramid |
+| **Sequences** | sequence-horizontal, sequence-timeline, sequence-roadmap, sequence-steps |
+| **Comparison** | compare-binary, compare-swot |
+| **Hierarchy** | hierarchy-tree, hierarchy-structure |
+| **Charts** | chart-bar, chart-column, chart-line, chart-pie |
+| **Quadrant** | quadrant-simple, quadrant-quarter |
+| **Relations** | relation-circle, relation-dagre |
+
+See [Template Gallery](skills/obsidian-infographics/reference/GALLERY.md) for complete examples.
+
 ## 🛠️ Development
 
 ```bash
