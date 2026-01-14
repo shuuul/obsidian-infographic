@@ -110,8 +110,6 @@ export default class InfographicPlugin extends Plugin {
 		const renderChild = new InfographicRenderChild(renderContainer, {
 			content: result.content,
 			isJson: result.isJson,
-			maxWidth: this.settings.maxWidth,
-			maxHeight: this.settings.maxHeight,
 			theme: this.settings.theme,
 			isDarkMode: this.isDarkMode(),
 		});

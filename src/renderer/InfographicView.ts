@@ -5,8 +5,6 @@ import type {ThemeSetting} from "../settings";
 export interface RenderOptions {
 	content: string;
 	isJson: boolean;
-	maxWidth: number;
-	maxHeight: number;
 	theme: ThemeSetting;
 	isDarkMode: boolean;
 }
@@ -19,11 +17,14 @@ interface ParsedInfographicConfig {
 	data?: InfographicOptions["data"];
 }
 
+const DEFAULT_ASPECT_RATIO = 4 / 3;
+
 export class InfographicRenderChild extends MarkdownRenderChild {
 	private infographic: Infographic | null = null;
 	private resizeObserver: ResizeObserver | null = null;
 	private options: RenderOptions;
 	private loadingEl: HTMLElement | null = null;
+	private aspectRatio: number = DEFAULT_ASPECT_RATIO;
 
 	constructor(containerEl: HTMLElement, options: RenderOptions) {
 		super(containerEl);
@@ -67,14 +68,17 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 
 	private render(): void {
 		const theme = this.getTheme();
+		const containerWidth = this.containerEl.parentElement?.clientWidth ?? 800;
+		const width = containerWidth;
+		const height = width / DEFAULT_ASPECT_RATIO;
 
 		try {
 			if (this.options.isJson) {
 				const parsed = JSON.parse(this.options.content) as ParsedInfographicConfig;
 				this.infographic = new Infographic({
 					container: this.containerEl,
-					width: parsed.width ?? this.options.maxWidth,
-					height: parsed.height ?? this.options.maxHeight,
+					width: parsed.width ?? width,
+					height: parsed.height ?? height,
 					theme: parsed.theme ?? theme,
 					...parsed,
 				});
@@ -82,13 +86,14 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 			} else {
 				this.infographic = new Infographic({
 					container: this.containerEl,
-					width: this.options.maxWidth,
-					height: this.options.maxHeight,
+					width,
+					height,
 					theme,
 				});
 				this.infographic.render(this.options.content);
 			}
 			this.hideLoading();
+			this.updateAspectRatioFromSVG();
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			console.error("[Infographic Plugin] Render error:", message, {
@@ -103,18 +108,19 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	private setupResizeObserver(): void {
 		if (typeof ResizeObserver === "undefined") return;
 
-		this.resizeObserver = new ResizeObserver(() => {
+		this.resizeObserver = new ResizeObserver((entries) => {
 			if (this.infographic && this.containerEl.isConnected) {
-				this.rerender();
+				for (const entry of entries) {
+					const { width } = entry.contentRect;
+					if (width > 0) {
+						const height = width / this.aspectRatio;
+						this.infographic.update({ width, height });
+					}
+				}
 			}
 		});
 		
 		this.resizeObserver.observe(this.containerEl.parentElement ?? this.containerEl);
-	}
-
-	private rerender(): void {
-		this.destroyInfographic();
-		this.render();
 	}
 
 	private renderError(message: string): void {
@@ -123,6 +129,40 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		
 		const errorDiv = this.containerEl.createDiv({cls: "infographic-error-message"});
 		errorDiv.setText(`Failed to render infographic: ${message}`);
+	}
+
+	private updateAspectRatioFromSVG(): void {
+		if (!this.infographic) return;
+		
+		const svg = this.containerEl.querySelector("svg");
+		if (!svg) return;
+
+		const viewBox = svg.getAttribute("viewBox");
+		if (viewBox) {
+			const parts = viewBox.split(/\s+/).map(Number);
+			const vbWidth = parts[2];
+			const vbHeight = parts[3];
+			if (parts.length === 4 && vbWidth !== undefined && vbHeight !== undefined && vbWidth > 0 && vbHeight > 0) {
+				this.aspectRatio = vbWidth / vbHeight;
+				this.resizeToFit();
+				return;
+			}
+		}
+
+		const rect = svg.getBoundingClientRect();
+		if (rect.width > 0 && rect.height > 0) {
+			this.aspectRatio = rect.width / rect.height;
+			this.resizeToFit();
+		}
+	}
+
+	private resizeToFit(): void {
+		if (!this.infographic) return;
+		
+		const containerWidth = this.containerEl.parentElement?.clientWidth ?? 800;
+		const width = containerWidth;
+		const height = width / this.aspectRatio;
+		this.infographic.update({ width, height });
 	}
 
 	private destroyInfographic(): void {

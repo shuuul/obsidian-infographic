@@ -1,89 +1,67 @@
-# OBSIDIAN-INFOGRAPHIC
+# PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-14  
-**Commit:** 6eef4ea  
-**Branch:** master
+**Generated:** 2026-01-14
+**Branch:** main
 
 ## OVERVIEW
-
-Obsidian plugin rendering AntV Infographic visualizations from `infographic` fenced code blocks. TypeScript → esbuild → main.js.
+Obsidian plugin that renders AntV Infographic visualizations from fenced `infographic` code blocks. Integrates `@antv/infographic` library into Obsidian's markdown preview.
 
 ## STRUCTURE
-
 ```
-src/
-├── main.ts           # Plugin lifecycle only (minimal)
-├── settings.ts       # InfographicSettings + SettingTab
-├── parser/           # parseInfographicSpec (JSON or AntV syntax)
-├── renderer/         # InfographicRenderChild (MarkdownRenderChild)
-└── ui/               # SourceCodeModal, ExportModal
+./
+├── src/
+│   ├── main.ts           # Plugin entry point
+│   ├── settings.ts       # Settings tab definition
+│   ├── parser/           # DSL/JSON spec parsing
+│   ├── renderer/         # AntV Infographic rendering
+│   └── ui/               # Modals (Export, Source)
+├── main.js               # Bundled output (DO NOT EDIT)
+├── styles.css            # Plugin styles
+├── esbuild.config.mjs    # Build configuration
+└── manifest.json         # Plugin metadata
 ```
 
 ## WHERE TO LOOK
-
-| Task | Location | Notes |
-|------|----------|-------|
-| Add command | `src/main.ts` | Use `this.addCommand()` in `onload()` |
-| Change settings | `src/settings.ts` | Update interface + DEFAULT_SETTINGS + SettingTab |
-| Modify parsing | `src/parser/InfographicParser.ts` | JSON vs AntV declarative detection |
-| Change rendering | `src/renderer/InfographicView.ts` | Uses `@antv/infographic`, ResizeObserver |
-| Add modal | `src/ui/` | Export from `index.ts` |
-| Error handling | `src/main.ts:handleError()` | Three modes: show-code, show-error, hide |
+| Task | Location |
+|------|----------|
+| Plugin lifecycle | `src/main.ts` |
+| Add new chart type | `src/renderer/InfographicView.ts` |
+| Parse custom DSL | `src/parser/InfographicParser.ts` |
+| Add settings | `src/settings.ts` + `src/ui/` |
+| Styling | `styles.css` |
 
 ## CODE MAP
-
-| Symbol | Type | Location | Role |
-|--------|------|----------|------|
-| `InfographicPlugin` | class | main.ts | Plugin entry, registers code block processor |
-| `InfographicSettings` | interface | settings.ts | Config schema |
-| `InfographicSettingTab` | class | settings.ts | Settings UI |
-| `parseInfographicSpec` | function | parser/ | Validates input, returns ParseResult |
-| `InfographicRenderChild` | class | renderer/ | Manages Infographic lifecycle in DOM |
-| `SourceCodeModal` | class | ui/ | Shows formatted source, copy support |
-| `ExportModal` | class | ui/ | PNG/SVG export via toDataURL |
+| Symbol | Type | Location |
+|--------|------|----------|
+| `InfographicPlugin` | class | `src/main.ts:18` |
+| `InfographicRenderChild` | class | `src/renderer/InfographicView.ts` |
+| `InfographicParser` | class | `src/parser/InfographicParser.ts` |
+| `ExportModal` | class | `src/ui/ExportModal.ts` |
+| `InfographicSettings` | type | `src/settings.ts` |
 
 ## CONVENTIONS
+- **Strict TypeScript**: `strictNullChecks`, `noUncheckedIndexedAccess` enabled
+- **Module resolution**: `baseUrl: "src"` - import from `src/...` directly
+- **Bundle**: esbuild, externalizes `obsidian`, `@codemirror/*`, `electron`
+- **Versioning**: `version-bump.mjs` syncs `package.json` → `manifest.json` → `versions.json`
+- **No backward compatibility**: Breaking changes accepted per `CLAUDE.md`
 
-- **Tabs** for indentation (4-width)
-- **Strict TypeScript**: `noImplicitAny`, `strictNullChecks`, `noUncheckedIndexedAccess`
-- **Minimal main.ts**: Only lifecycle code; delegate to modules
-- **Module exports**: Each subdir has `index.ts` barrel file
-- **Error messages**: Use `console.error("[Infographic Plugin] ...")` pattern
-
-## ANTI-PATTERNS
-
-- **NEVER** commit `main.js`, `node_modules/`
-- **NEVER** change `id` in manifest.json after release
-- **NEVER** suppress type errors (`as any`, `@ts-ignore`)
-- **NEVER** use empty catch blocks (current `destroyInfographic()` has one - legacy)
-- **NEVER** make network requests without user consent
-- **NEVER** access files outside vault
+## ANTI-PATTERNS (THIS PROJECT)
+- **Never** edit `main.js` directly - always rebuild from `src/`
+- **Never** bypass `InfographicRenderChild` for rendering - use lifecycle hooks
+- **Never** register events without `this.registerEvent()` - causes leaks
+- **Never** put DOM logic in `main.ts` - delegate to `MarkdownRenderChild`
 
 ## COMMANDS
-
 ```bash
-npm install          # Install deps
-npm run dev          # Watch mode
-npm run build        # Production (tsc check + minify)
-npm run lint         # ESLint
+npm run dev       # Watch mode with esbuild
+npm run build     # Type-check + production bundle
+npm run lint      # ESLint + obsidianmd rules
+npm run version   # Bump version, update manifests
 ```
 
-## RELEASE
-
-1. Bump version: `npm version patch|minor|major`
-2. Creates tag matching `manifest.json` version (no `v` prefix)
-3. Attach: `main.js`, `manifest.json`, `styles.css`
-
-## TESTING
-
-No automated tests. Manual testing:
-1. Copy `main.js`, `manifest.json`, `styles.css` to vault
-2. Reload Obsidian, enable plugin
-3. Test `infographic` code blocks
-
 ## NOTES
-
-- ResizeObserver handles Obsidian pane resizing
-- Theme follows `body.theme-dark` class when set to "auto"
-- AntV Infographic has ~200 built-in templates
-- `isDesktopOnly: false` - should work on mobile
+- Toolbar (Copy/Export) always visible on rendered blocks
+- Error behavior configurable: hide / show-error / show-code
+- Dark mode auto-detected via `document.body.classList`
+- ResizeObserver handles chart resizing

@@ -1,24 +1,48 @@
-# Obsidian Infographic
+<h1 align="center">📊 Obsidian Infographic Plugin</h1>
 
-An Obsidian plugin that renders [AntV Infographic](https://github.com/antvis/Infographic) visualizations from fenced code blocks.
+<p align="center">
+  <img src="https://img.shields.io/github/downloads/shuuul/obsidian-infographic/total" alt="GitHub Downloads">
+  <img src="https://img.shields.io/github/license/shuuul/obsidian-infographic" alt="License">
+  <img src="https://img.shields.io/github/v/release/shuuul/obsidian-infographic" alt="GitHub release">
+  <img src="https://img.shields.io/github/last-commit/shuuul/obsidian-infographic" alt="GitHub last commit">
+</p>
 
-## Features
+Render [AntV Infographic](https://github.com/antvis/Infographic) visualizations directly in your Obsidian notes using fenced code blocks. ✨
 
-- Render infographics directly in your notes using `infographic` code blocks
-- Supports both JSON configuration and AntV's declarative syntax
-- View and copy source code with a single click
-- ~200 built-in templates from AntV Infographic
-- Responsive rendering with automatic resize handling
-- Theme support (auto/light/dark)
-- Works in both editing and reading modes
+## ✨ Features
 
-## Usage
+- 🎨 **200+ Built-in Templates** - Process flows, timelines, hierarchies, charts, and more
+- 📝 **Dual Syntax Support** - Use JSON configuration or AntV's declarative DSL
+- 🖼️ **Export Options** - Save infographics as SVG or PNG
+- 🌓 **Theme Support** - Auto-detect or force light/dark mode
+- 📐 **Responsive Design** - Automatic resize handling
+- 🔄 **Live Reload** - Refresh all infographics with a single command
 
-Create an infographic by adding a fenced code block with the `infographic` language identifier.
+## 📦 Installation
+
+### From Obsidian Community Plugins
+
+1. Open **Settings** → **Community plugins**
+2. Search for "Obsidian Infographic"
+3. Select **Install**, then **Enable**
+
+### Manual Installation
+
+1. Download the latest release from [GitHub Releases](https://github.com/shuuul/obsidian-infographic/releases):
+   - `main.js`
+   - `manifest.json`
+   - `styles.css`
+2. Create folder: `Vault/.obsidian/plugins/obsidian-infographic/`
+3. Place the downloaded files in the folder
+4. Reload Obsidian and enable the plugin
+
+## 🚀 Usage
+
+Create an infographic using a fenced code block with the `infographic` language:
 
 ### JSON Format
 
-````markdown
+```markdown
 ```infographic
 {
   "template": "list-row-simple-horizontal-arrow",
@@ -31,13 +55,11 @@ Create an infographic by adding a fenced code block with the `infographic` langu
   }
 }
 ```
-````
+```
 
-### AntV Infographic Syntax
+### DSL Format
 
-You can also use AntV's declarative syntax directly:
-
-````markdown
+```markdown
 ```infographic
 infographic list-row-simple-horizontal-arrow
 data
@@ -49,18 +71,17 @@ data
     - label Step 3
       desc Complete
 ```
-````
+```
 
-### More Examples
+## 📋 Template Examples
 
-#### Timeline
+### Timeline
 
-````markdown
+```markdown
 ```infographic
 {
-  "template": "sequence-stairs",
+  "template": "sequence-timeline",
   "data": {
-    "title": "Project Timeline",
     "items": [
       { "label": "Q1", "desc": "Planning" },
       { "label": "Q2", "desc": "Development" },
@@ -70,11 +91,11 @@ data
   }
 }
 ```
-````
+```
 
-#### Hierarchy
+### Hierarchy
 
-````markdown
+```markdown
 ```infographic
 {
   "template": "hierarchy-structure",
@@ -92,49 +113,77 @@ data
   }
 }
 ```
-````
+```
 
-## Settings
+### Comparison
+
+```markdown
+```infographic
+{
+  "template": "compare-binary",
+  "data": {
+    "items": [
+      { "label": "Option A", "desc": "Benefits" },
+      { "label": "Option B", "desc": "Trade-offs" }
+    ]
+  }
+}
+```
+```
+
+### Chart
+
+```markdown
+```infographic
+{
+  "template": "chart-bar",
+  "data": {
+    "items": [
+      { "label": "A", "value": 30 },
+      { "label": "B", "value": 50 },
+      { "label": "C", "value": 40 }
+    ]
+  }
+}
+```
+```
+
+### With Icons
+
+```markdown
+```infographic
+{
+  "template": "list-row-simple-horizontal-arrow",
+  "data": {
+    "items": [
+      { "icon": "ref:search:computer network", "label": "Network", "desc": "Connect" },
+      { "icon": "ref:search:cloud", "label": "Cloud", "desc": "Store" },
+      { "icon": "ref:search:security", "label": "Security", "desc": "Protect" }
+    ]
+  }
+}
+```
+```
+
+## ⚙️ Configuration
 
 Access settings via **Settings** → **Community plugins** → **Obsidian Infographic**.
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| **Auto render** | Automatically render infographic blocks in preview mode | `true` |
-| **Show source button** | Display a button to view the source code | `true` |
-| **Theme** | Color theme: Auto (follows Obsidian), Light, or Dark | `auto` |
-| **Error behavior** | What to show on error: source code, error message, or hide | `show-code` |
-| **Max width** | Maximum width for rendered infographics (px) | `800` |
-| **Max height** | Maximum height for rendered infographics (px) | `600` |
+| **Auto render** | Automatically render in preview mode | `true` |
+| **Theme** | Auto / Light / Dark | `auto` |
+| **Error behavior** | show-code / show-error / hide | `show-code` |
+| **Max width** | Maximum width (px) | `800` |
+| **Max height** | Maximum height (px) | `600` |
 
-## Templates
+### Toolbar Actions
 
-This plugin uses AntV Infographic which includes ~200 built-in templates. Some popular ones:
+Each rendered infographic shows a toolbar:
+- **Copy** - Copy source code to clipboard
+- **Export** - Save as SVG or PNG
 
-- `list-row-simple-horizontal-arrow` - Horizontal arrow list
-- `list-zigzag` - Zigzag list layout
-- `sequence-stairs` - Staircase timeline
-- `hierarchy-structure` - Organization chart
-- `word-cloud` - Word cloud visualization
-
-For a complete list, visit the [AntV Infographic Gallery](https://infographic.antv.vision/gallery).
-
-## Installation
-
-### From Obsidian Community Plugins
-
-1. Open **Settings** → **Community plugins**
-2. Search for "Obsidian Infographic"
-3. Select **Install**, then **Enable**
-
-### Manual Installation
-
-1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release
-2. Create a folder `obsidian-infographic` in your vault's `.obsidian/plugins/` directory
-3. Copy the downloaded files into the folder
-4. Reload Obsidian and enable the plugin in **Settings** → **Community plugins**
-
-## Development
+## 🛠️ Development
 
 ```bash
 # Install dependencies
@@ -150,24 +199,6 @@ npm run build
 npm run lint
 ```
 
-## Troubleshooting
+## 📄 License
 
-### Infographic not rendering
-
-1. Check that your JSON is valid (use a JSON validator)
-2. Ensure the `data` field contains an `items` array
-3. Verify the template name exists
-
-### Blank or small infographic
-
-- Try adjusting the `maxWidth` and `maxHeight` settings
-- Or specify `width` and `height` directly in your JSON config
-
-### Theme issues
-
-- Set the theme to "Auto" to follow Obsidian's theme
-- Or force "Light" or "Dark" in settings
-
-## License
-
-0-BSD
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
