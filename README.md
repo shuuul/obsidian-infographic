@@ -20,6 +20,19 @@ Render [AntV Infographic](https://github.com/antvis/Infographic) visualizations 
 
 ## 📦 Installation
 
+### 🧪 Install via BRAT (Beta)
+
+For beta/development versions, install using [BRAT](https://github.com/TfTHacker/obsidian42-brat):
+
+1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from Community Plugins
+2. Go to **Settings** → **BRAT** → **Add Beta Plugin**
+3. Enter the repository URL:
+   ```
+   https://github.com/shuuul/obsidian-infographic
+   ```
+4. BRAT will download and keep the plugin updated
+5. Enable **Obsidian Infographic** from Community Plugins
+
 ### From Obsidian Community Plugins
 
 1. Open **Settings** → **Community plugins**
