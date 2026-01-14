@@ -41,7 +41,7 @@
 ### 从 Obsidian 社区插件安装
 
 1. 打开 **设置** → **社区插件**
-2. 搜索 "Obsidian Infographic"
+2. 搜索 "Infographic"
 3. 选择 **安装**，然后 **启用**
 
 ### 手动安装
