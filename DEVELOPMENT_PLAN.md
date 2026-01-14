@@ -35,48 +35,48 @@ Create an Obsidian plugin that renders AntV Infographic visualizations from fenc
 - [x] Store parsed specs for rendering
 
 ### 2.2 Infographic Rendering
-- [ ] Create `InfographicRenderer` class
-- [ ] Initialize AntV Infographic instance in container
-- [ ] Handle resize events and responsive rendering
-- [ ] Implement proper cleanup on document unload
-- [ ] Add error boundaries for failed renders
-- [ ] Support theme customization via settings
+- [x] Create `InfographicRenderer` class
+- [x] Initialize AntV Infographic instance in container
+- [x] Handle resize events and responsive rendering
+- [x] Implement proper cleanup on document unload
+- [x] Add error boundaries for failed renders
+- [x] Support theme customization via settings
 
 ### 2.3 Source Code Conversion Feature
-- [ ] Add "Show Source" button on each rendered infographic
-- [ ] Create modal to display formatted source code
-- [ ] Implement "Copy to Clipboard" functionality
-- [ ] Add syntax highlighting for JSON display
-- [ ] Support toggling between rendered view and source view
+- [x] Add "Show Source" button on each rendered infographic
+- [x] Create modal to display formatted source code
+- [x] Implement "Copy to Clipboard" functionality
+- [x] Add syntax highlighting for JSON display
+- [x] Support toggling between rendered view and source view
 
 ### 2.4 Settings Panel
-- [ ] Rename settings to `InfographicSettings`
-- [ ] Add setting: enable/disable auto-render
-- [ ] Add setting: default theme (light/dark/custom)
-- [ ] Add setting: max width/height constraints
-- [ ] Add setting: show/hide source button
-- [ ] Add setting: error behavior (show code vs. hide block)
+- [x] Rename settings to `InfographicSettings`
+- [x] Add setting: enable/disable auto-render
+- [x] Add setting: default theme (light/dark/custom)
+- [x] Add setting: max width/height constraints
+- [x] Add setting: show/hide source button
+- [x] Add setting: error behavior (show code vs. hide block)
 
 ## Phase 3: UI/UX Enhancements
 
 ### 3.1 Enhanced Rendering
-- [ ] Add loading state while infographic initializes
+- [x] Add loading state while infographic initializes
 - [ ] Implement smooth transitions between views
-- [ ] Add hover controls for the source button
+- [x] Add hover controls for the source button
 - [ ] Support click-to-zoom functionality
 - [ ] Add right-click context menu options
 
 ### 3.2 Modal Improvements
-- [ ] Create `SourceCodeModal` for viewing/editing
+- [x] Create `SourceCodeModal` for viewing/editing
 - [ ] Add "Edit" mode to modify and re-render
-- [ ] Implement "Export" functionality (PNG/SVG)
-- [ ] Add keyboard shortcuts (ESC to close, Ctrl+C to copy)
+- [x] Implement "Export" functionality (PNG/SVG)
+- [x] Add keyboard shortcuts (ESC to close, Ctrl+C to copy)
 
 ### 3.3 Error Handling
-- [ ] Show inline error messages in preview
+- [x] Show inline error messages in preview
 - [ ] Provide "View Error Details" button
-- [ ] Log errors to console with helpful context
-- [ ] Fallback to displaying raw code block on failure
+- [x] Log errors to console with helpful context
+- [x] Fallback to displaying raw code block on failure
 
 ## Phase 4: Commands & Integration
 

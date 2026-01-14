@@ -2,10 +2,12 @@ import {App, Modal, Notice} from "obsidian";
 
 export class SourceCodeModal extends Modal {
 	private source: string;
+	private formattedSource: string;
 
 	constructor(app: App, source: string) {
 		super(app);
 		this.source = source;
+		this.formattedSource = this.formatSource();
 	}
 
 	onOpen(): void {
@@ -17,23 +19,46 @@ export class SourceCodeModal extends Modal {
 		const codeContainer = contentEl.createDiv({cls: "infographic-source-code"});
 		const pre = codeContainer.createEl("pre");
 		const code = pre.createEl("code");
-		code.setText(this.source);
+		code.setText(this.formattedSource);
 
 		const buttonContainer = contentEl.createDiv({cls: "infographic-source-buttons"});
 		
 		const copyButton = buttonContainer.createEl("button", {text: "Copy to clipboard"});
-		copyButton.addEventListener("click", () => {
-			navigator.clipboard.writeText(this.source).then(() => {
-				new Notice("Copied to clipboard");
-			}).catch(() => {
-				new Notice("Failed to copy");
-			});
-		});
+		copyButton.addEventListener("click", () => this.copyToClipboard());
 
 		const closeButton = buttonContainer.createEl("button", {text: "Close"});
-		closeButton.addEventListener("click", () => {
-			this.close();
+		closeButton.addEventListener("click", () => this.close());
+
+		this.scope.register(["Mod"], "c", () => {
+			this.copyToClipboard();
+			return false;
 		});
+
+		this.scope.register([], "Escape", () => {
+			this.close();
+			return false;
+		});
+	}
+
+	private copyToClipboard(): void {
+		navigator.clipboard.writeText(this.formattedSource).then(() => {
+			new Notice("Copied to clipboard");
+		}).catch(() => {
+			new Notice("Failed to copy");
+		});
+	}
+
+	private formatSource(): string {
+		const trimmed = this.source.trim();
+		if (trimmed.startsWith("{")) {
+			try {
+				const parsed = JSON.parse(trimmed);
+				return JSON.stringify(parsed, null, 2);
+			} catch {
+				return this.source;
+			}
+		}
+		return this.source;
 	}
 
 	onClose(): void {

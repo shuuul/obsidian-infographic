@@ -1,8 +1,188 @@
-/*
+.infographic-wrapper {
+	position: relative;
+	margin: 1em 0;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.infographic-toolbar {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	z-index: 10;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
 
-If your plugin does not need CSS, delete this file.
+.infographic-wrapper:hover .infographic-toolbar {
+	opacity: 1;
+}
 
-*/
+.infographic-source-btn {
+	font-size: 12px;
+	padding: 4px 8px;
+	cursor: pointer;
+	background: var(--background-modifier-hover);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	color: var(--text-muted);
+}
+
+.infographic-source-btn:hover {
+	background: var(--background-modifier-active-hover);
+	color: var(--text-normal);
+}
+
+.infographic-container {
+	min-height: 100px;
+	overflow: hidden;
+}
+
+.infographic-error-block {
+	padding: 1em;
+	background: var(--background-modifier-error);
+	border-radius: 4px;
+	border: 1px solid var(--text-error);
+}
+
+.infographic-error-header {
+	color: var(--text-error);
+	font-weight: 600;
+	margin-bottom: 0.5em;
+}
+
+.infographic-error-source {
+	margin: 0;
+	padding: 0.5em;
+	background: var(--background-primary);
+	border-radius: 4px;
+	overflow-x: auto;
+}
+
+.infographic-error-source code {
+	font-size: 12px;
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.infographic-error-message {
+	padding: 1em;
+	background: var(--background-modifier-error);
+	border-radius: 4px;
+	color: var(--text-error);
+}
+
+.infographic-source-modal .infographic-source-code {
+	margin: 1em 0;
+	max-height: 60vh;
+	overflow: auto;
+}
+
+.infographic-source-modal pre {
+	margin: 0;
+	padding: 1em;
+	background: var(--background-secondary);
+	border-radius: 4px;
+}
+
+.infographic-source-modal code {
+	font-size: 13px;
+	line-height: 1.5;
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.infographic-source-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+.infographic-source-buttons button {
+	padding: 6px 12px;
+	cursor: pointer;
+}
+
+/* Loading state */
+.infographic-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100px;
+	color: var(--text-muted);
+	font-size: 14px;
+}
+
+.infographic-loading::before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	margin-right: 8px;
+	border: 2px solid var(--text-muted);
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: infographic-spin 0.8s linear infinite;
+}
+
+@keyframes infographic-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Toolbar buttons */
+.infographic-toolbar-btn {
+	font-size: 12px;
+	padding: 4px 8px;
+	cursor: pointer;
+	background: var(--background-modifier-hover);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	color: var(--text-muted);
+	margin-left: 4px;
+}
+
+.infographic-toolbar-btn:hover {
+	background: var(--background-modifier-active-hover);
+	color: var(--text-normal);
+}
+
+.infographic-toolbar-btn:first-child {
+	margin-left: 0;
+}
+
+/* Export modal */
+.infographic-export-modal h2 {
+	margin-top: 0;
+	margin-bottom: 1em;
+}
+
+.infographic-export-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+.infographic-export-buttons button {
+	padding: 8px 16px;
+	cursor: pointer;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--interactive-normal);
+	color: var(--text-normal);
+}
+
+.infographic-export-buttons button:hover {
+	background: var(--interactive-hover);
+}
+
+.infographic-export-buttons button:first-child,
+.infographic-export-buttons button:nth-child(2) {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-color: var(--interactive-accent);
+}
+
+.infographic-export-buttons button:first-child:hover,
+.infographic-export-buttons button:nth-child(2):hover {
+	background: var(--interactive-accent-hover);
+}

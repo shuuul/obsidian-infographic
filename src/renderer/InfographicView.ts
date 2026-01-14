@@ -1,60 +1,112 @@
 import {MarkdownRenderChild} from "obsidian";
 import {Infographic} from "@antv/infographic";
+import type {ThemeSetting} from "../settings";
+
+export interface RenderOptions {
+	content: string;
+	isJson: boolean;
+	maxWidth: number;
+	maxHeight: number;
+	theme: ThemeSetting;
+	isDarkMode: boolean;
+}
 
 export class InfographicRenderChild extends MarkdownRenderChild {
 	private infographic: Infographic | null = null;
-	private content: string;
-	private isJson: boolean;
-	private maxWidth: number;
-	private maxHeight: number;
+	private resizeObserver: ResizeObserver | null = null;
+	private options: RenderOptions;
+	private loadingEl: HTMLElement | null = null;
 
-	constructor(
-		containerEl: HTMLElement,
-		content: string,
-		isJson: boolean,
-		maxWidth: number,
-		maxHeight: number
-	) {
+	constructor(containerEl: HTMLElement, options: RenderOptions) {
 		super(containerEl);
-		this.content = content;
-		this.isJson = isJson;
-		this.maxWidth = maxWidth;
-		this.maxHeight = maxHeight;
+		this.options = options;
 	}
 
 	onload(): void {
+		this.showLoading();
 		this.render();
+		this.setupResizeObserver();
 	}
 
 	onunload(): void {
-		this.destroy();
+		this.cleanup();
+	}
+
+	getInfographic(): Infographic | null {
+		return this.infographic;
+	}
+
+	private getTheme(): string | undefined {
+		if (this.options.theme === "auto") {
+			return this.options.isDarkMode ? "dark" : "light";
+		}
+		return this.options.theme;
+	}
+
+	private showLoading(): void {
+		this.containerEl.empty();
+		this.containerEl.addClass("infographic-container");
+		this.loadingEl = this.containerEl.createDiv({cls: "infographic-loading"});
+		this.loadingEl.setText("Loading infographic...");
+	}
+
+	private hideLoading(): void {
+		if (this.loadingEl) {
+			this.loadingEl.remove();
+			this.loadingEl = null;
+		}
 	}
 
 	private render(): void {
-		this.containerEl.empty();
-		this.containerEl.addClass("infographic-container");
+		const theme = this.getTheme();
 
 		try {
-			if (this.isJson) {
-				const options = JSON.parse(this.content);
+			if (this.options.isJson) {
+				const parsed = JSON.parse(this.options.content);
 				this.infographic = new Infographic({
 					container: this.containerEl,
-					width: options.width ?? this.maxWidth,
-					height: options.height ?? this.maxHeight,
-					...options,
+					width: parsed.width ?? this.options.maxWidth,
+					height: parsed.height ?? this.options.maxHeight,
+					theme: parsed.theme ?? theme,
+					...parsed,
 				});
 				this.infographic.render();
 			} else {
 				this.infographic = new Infographic({
 					container: this.containerEl,
-					width: this.maxWidth,
-					height: this.maxHeight,
+					width: this.options.maxWidth,
+					height: this.options.maxHeight,
+					theme,
 				});
-				this.infographic.render(this.content);
+				this.infographic.render(this.options.content);
 			}
+			this.hideLoading();
 		} catch (e) {
-			this.renderError(e instanceof Error ? e.message : String(e));
+			const message = e instanceof Error ? e.message : String(e);
+			console.error("[Infographic Plugin] Render error:", message, {
+				content: this.options.content.substring(0, 200),
+				isJson: this.options.isJson,
+			});
+			this.hideLoading();
+			this.renderError(message);
 		}
+	}
+
+	private setupResizeObserver(): void {
+		if (typeof ResizeObserver === "undefined") return;
+
+		this.resizeObserver = new ResizeObserver(() => {
+			if (this.infographic && this.containerEl.isConnected) {
+				this.rerender();
+			}
+		});
+		
+		this.resizeObserver.observe(this.containerEl.parentElement ?? this.containerEl);
+	}
+
+	private rerender(): void {
+		this.destroyInfographic();
+		this.render();
 	}
 
 	private renderError(message: string): void {
@@ -65,12 +117,20 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		errorDiv.setText(`Failed to render infographic: ${message}`);
 	}
 
-	private destroy(): void {
+	private destroyInfographic(): void {
 		if (this.infographic) {
 			try {
 				this.infographic.destroy();
 			} catch {}
 			this.infographic = null;
 		}
+	}
+
+	private cleanup(): void {
+		if (this.resizeObserver) {
+			this.resizeObserver.disconnect();
+			this.resizeObserver = null;
+		}
+		this.destroyInfographic();
 	}
 }
