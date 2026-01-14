@@ -2,7 +2,7 @@
 
 **Generated:** 2026-01-14
 **Branch:** main
-**Version:** 0.1.4
+**Version:** 0.1.6
 
 ## OVERVIEW
 Obsidian plugin that renders AntV Infographic visualizations from fenced `infographic` code blocks. Integrates `@antv/infographic` library into Obsidian's markdown preview.
@@ -80,7 +80,9 @@ When you push a tag matching `v*`, GitHub Actions automatically:
 1. Builds the plugin
 2. Creates and publishes a release with `main.js`, `manifest.json`, `styles.css`
 
-Tag format: `v0.x.x` (e.g., `v0.1.4`)
+Tag format: `v0.x.x` (e.g., `v0.1.5`)
+
+**Important:** Before creating a tag, ensure `manifest.json` version matches the tag version.
 
 ### Manual Release Process
 
