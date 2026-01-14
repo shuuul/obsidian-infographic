@@ -190,3 +190,32 @@
 .infographic-export-buttons button:nth-child(2):hover {
 	background: var(--interactive-accent-hover);
 }
+
+/* Error details button */
+.infographic-error-details-btn {
+	margin-top: 8px;
+	padding: 4px 12px;
+	font-size: 12px;
+	cursor: pointer;
+	background: var(--interactive-normal);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	color: var(--text-normal);
+}
+
+.infographic-error-details-btn:hover {
+	background: var(--interactive-hover);
+}
+
+/* Smooth transitions */
+.infographic-render {
+	transition: opacity 0.2s ease;
+}
+
+.infographic-loading + .infographic-render {
+	opacity: 0;
+}
+
+.infographic-wrapper .infographic-render {
+	opacity: 1;
+}

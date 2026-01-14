@@ -28,6 +28,25 @@ export default class InfographicPlugin extends Plugin {
 		this.addSettingTab(new InfographicSettingTab(this.app, this));
 
 		this.registerCommands();
+		this.registerEventHandlers();
+	}
+
+	private registerEventHandlers(): void {
+		// Refresh infographics when switching to a different note
+		this.registerEvent(this.app.workspace.on('active-leaf-change', (leaf) => {
+			if (leaf) {
+				const view = leaf.view;
+				if (view instanceof MarkdownView) {
+					this.refreshView(view);
+				}
+			}
+		}));
+	}
+
+	private refreshView(view: MarkdownView): void {
+		// Force re-render by triggering a view state refresh
+		const state = view.getState();
+		void view.setState(state, {history: false});
 	}
 
 	private registerCommands(): void {
@@ -98,28 +117,27 @@ export default class InfographicPlugin extends Plugin {
 		});
 		ctx.addChild(renderChild);
 
-		if (this.settings.showSourceButton) {
-			const toolbar = container.createDiv({cls: "infographic-toolbar"});
-			
-			const sourceBtn = toolbar.createEl("button", {
-				text: "Source",
-				cls: "infographic-toolbar-btn",
-			});
-			sourceBtn.addEventListener("click", () => {
-				new SourceCodeModal(this.app, source).open();
-			});
+		// Always show toolbar with Edit and Export buttons
+		const toolbar = container.createDiv({cls: "infographic-toolbar"});
+		
+		const sourceBtn = toolbar.createEl("button", {
+			text: "Edit",
+			cls: "infographic-toolbar-btn",
+		});
+		sourceBtn.addEventListener("click", () => {
+			new SourceCodeModal(this.app, source).open();
+		});
 
-			const exportBtn = toolbar.createEl("button", {
-				text: "Export",
-				cls: "infographic-toolbar-btn",
-			});
-			exportBtn.addEventListener("click", () => {
+		const exportBtn = toolbar.createEl("button", {
+			text: "Export",
+			cls: "infographic-toolbar-btn",
+		});
+		exportBtn.addEventListener("click", () => {
 				const infographic = renderChild.getInfographic();
 				if (infographic) {
 					new ExportModal(this.app, infographic).open();
 				}
 			});
-		}
 	}
 
 	private handleError(el: HTMLElement, error: string, source: string): void {
@@ -133,6 +151,13 @@ export default class InfographicPlugin extends Plugin {
 				el.addClass("infographic-error-block");
 				const errorMsg = el.createDiv({cls: "infographic-error-header"});
 				errorMsg.setText(`Error: ${error}`);
+				const detailsBtn = el.createEl("button", {
+					text: "View details",
+					cls: "infographic-error-details-btn",
+				});
+				detailsBtn.addEventListener("click", () => {
+					new SourceCodeModal(this.app, source).open();
+				});
 				break;
 			}
 			case "show-code":
