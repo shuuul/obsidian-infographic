@@ -92,81 +92,170 @@ data
 ### 时间线
 
 ```infographic
-{
-  "template": "sequence-timeline",
-  "data": {
-    "items": [
-      { "label": "Q1", "desc": "规划" },
-      { "label": "Q2", "desc": "开发" },
-      { "label": "Q3", "desc": "测试" },
-      { "label": "Q4", "desc": "发布" }
-    ]
-  }
-}
+infographic sequence-timeline-rounded-rect-node
+data
+  title 企业优势列表
+  desc 展示企业在不同维度上的核心优势与表现值
+  items
+    - label 品牌影响力
+      value 85
+      desc 在目标用户群中具备较强认知与信任度
+      time 2021
+      icon mingcute/diamond-2-fill
+      illus creative-experiment
+    - label 技术研发力
+      value 90
+      desc 拥有自研核心系统与持续创新能力
+      time 2022
+      icon mingcute/code-fill
+      illus code-thinking
+    - label 市场增长快
+      value 78
+      desc 近一年用户规模实现快速增长
+      time 2023
+      icon mingcute/wallet-4-line
+      illus business-analytics
+    - label 服务满意度
+      value 88
+      desc 用户对服务体系整体评分较高
+      time 2020
+      icon mingcute/happy-line
+      illus feeling-happy
+    - label 数据资产全
+      value 92
+      desc 构建了完整用户标签与画像体系
+      time 2022
+      icon mingcute/user-4-line
+      illus mobile-photos
+    - label 创新能力强
+      value 83
+      desc 新产品上线频率高于行业平均
+      time 2023
+      icon mingcute/rocket-line
+      illus creativity
+theme light
+  palette antv
 ```
 
 ### 层次结构
 
 ```infographic
-{
-  "template": "hierarchy-structure",
-  "data": {
-    "items": [
-      {
-        "label": "CEO",
-        "children": [
-          { "label": "CTO" },
-          { "label": "CFO" },
-          { "label": "COO" }
-        ]
-      }
-    ]
-  }
-}
+infographic hierarchy-structure
+data
+  title 系统分层结构
+  desc 展示不同层级的模块与功能分组
+  items
+    - label 展现层
+      children
+        - label 小程序
+        - label APP
+        - label PAD
+        - label 客户端
+        - label WEB
+    - label 应用层
+      children
+        - label 核心模块
+          children
+            - label 功能1
+            - label 功能2
+            - label 功能3
+            - label 功能4
+            - label 功能5
+            - label 功能6
+        - label 基础模块
+          children
+            - label 功能1
+            - label 功能2
+            - label 功能3
+            - label 功能4
+            - label 功能5
+            - label 功能6
+        - label 其他模块
+          children
+            - label 功能1
+            - label 功能2
+            - label 功能3
+            - label 功能4
+            - label 功能5
+            - label 功能6
+    - label 平台层
+      children
+        - label 模块1
+          children
+            - label 功能1
+            - label 功能2
+            - label 功能3
+            - label 功能4
+        - label 模块2
+          children
+            - label 功能1
+            - label 功能2
+            - label 功能3
+            - label 功能4
+        - label 模块3
+          children
+            - label 功能1
+            - label 功能2
+            - label 功能3
+            - label 功能4
+theme light
+  palette antv
 ```
 
 ### 对比
 
 ```infographic
-{
-  "template": "compare-binary",
-  "data": {
-    "items": [
-      { "label": "选项 A", "desc": "优势" },
-      { "label": "选项 B", "desc": "权衡" }
-    ]
-  }
-}
+infographic compare-binary-horizontal-badge-card-fold
+data
+  title 企业优劣势对比
+  desc 呈现企业当前在市场中的核心优势与待改善劣势
+  items
+    - label 优势
+      children
+        - label 产品研发强
+          desc 技术领先，具备自主创新能力
+        - label 客户粘性高
+          desc 用户复购率超60%，口碑良好
+        - label 服务体系完善
+          desc 售后服务响应快，客户满意度高
+    - label 劣势
+      children
+        - label 品牌曝光弱
+          desc 市场宣传不足，认知度待提升
+        - label 渠道覆盖窄
+          desc 线上渠道布局不全，触达受限
+        - label 运营成本高
+          desc 人力与物流成本高于行业均值
+theme light
+  palette antv
 ```
 
 ### 图表
 
 ```infographic
-{
-  "template": "chart-bar",
-  "data": {
-    "items": [
-      { "label": "A", "value": 30 },
-      { "label": "B", "value": 50 },
-      { "label": "C", "value": 40 }
-    ]
-  }
-}
-```
-
-### 带图标
-
-```infographic
-{
-  "template": "list-row-simple-horizontal-arrow",
-  "data": {
-    "items": [
-      { "icon": "ref:search:computer network", "label": "网络", "desc": "连接" },
-      { "icon": "ref:search:cloud", "label": "云", "desc": "存储" },
-      { "icon": "ref:search:security", "label": "安全", "desc": "保护" }
-    ]
-  }
-}
+infographic chart-bar-plain-text
+data
+  title 年度营收增长
+  desc 展示近三年及本年目标营收对比（单位：亿元）
+  items
+    - label 2021年
+      value 120
+      desc 转型初期，稳步试水
+      icon lucide/sprout
+    - label 2022年
+      value 150
+      desc 平台优化，效率显著提升
+      icon lucide/zap
+    - label 2023年
+      value 190
+      desc 深化数智融合，全面增长
+      icon lucide/brain-circuit
+    - label 2024年
+      value 240
+      desc 拓展生态协同，冲击新高
+      icon lucide/trophy
+theme light
+  palette antv
 ```
 
 ## ⚙️ 配置

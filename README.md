@@ -92,82 +92,172 @@ data
 ### Timeline
 
 ```infographic
-{
-  "template": "sequence-timeline",
-  "data": {
-    "items": [
-      { "label": "Q1", "desc": "Planning" },
-      { "label": "Q2", "desc": "Development" },
-      { "label": "Q3", "desc": "Testing" },
-      { "label": "Q4", "desc": "Launch" }
-    ]
-  }
-}
+infographic sequence-timeline-rounded-rect-node
+data
+  title Company Advantages List
+  desc Show core strengths and performance metrics across different dimensions
+  items
+    - label Brand Influence
+      value 85
+      desc Strong recognition and trust among target users
+      time 2021
+      icon mingcute/diamond-2-fill
+      illus creative-experiment
+    - label R&D Capability
+      value 90
+      desc Proprietary core systems with continuous innovation
+      time 2022
+      icon mingcute/code-fill
+      illus code-thinking
+    - label Market Growth
+      value 78
+      desc Rapid user base growth in the past year
+      time 2023
+      icon mingcute/wallet-4-line
+      illus business-analytics
+    - label Service Satisfaction
+      value 88
+      desc High ratings for overall service system
+      time 2020
+      icon mingcute/happy-line
+      illus feeling-happy
+    - label Data Assets
+      value 92
+      desc Complete user tagging and profiling system
+      time 2022
+      icon mingcute/user-4-line
+      illus mobile-photos
+    - label Innovation
+      value 83
+      desc New product launches exceed industry average
+      time 2023
+      icon mingcute/rocket-line
+      illus creativity
+theme light
+  palette antv
 ```
 
 ### Hierarchy
 
 ```infographic
-{
-  "template": "hierarchy-structure",
-  "data": {
-    "items": [
-      {
-        "label": "CEO",
-        "children": [
-          { "label": "CTO" },
-          { "label": "CFO" },
-          { "label": "COO" }
-        ]
-      }
-    ]
-  }
-}
+infographic hierarchy-structure
+data
+  title System Layer Architecture
+  desc Show modules and functional groupings across different layers
+  items
+    - label Presentation Layer
+      children
+        - label Mini Program
+        - label APP
+        - label PAD
+        - label Desktop Client
+        - label WEB
+    - label Application Layer
+      children
+        - label Core Module
+          children
+            - label Function 1
+            - label Function 2
+            - label Function 3
+            - label Function 4
+            - label Function 5
+            - label Function 6
+        - label Base Module
+          children
+            - label Function 1
+            - label Function 2
+            - label Function 3
+            - label Function 4
+            - label Function 5
+            - label Function 6
+        - label Other Module
+          children
+            - label Function 1
+            - label Function 2
+            - label Function 3
+            - label Function 4
+            - label Function 5
+            - label Function 6
+    - label Platform Layer
+      children
+        - label Module 1
+          children
+            - label Function 1
+            - label Function 2
+            - label Function 3
+            - label Function 4
+        - label Module 2
+          children
+            - label Function 1
+            - label Function 2
+            - label Function 3
+            - label Function 4
+        - label Module 3
+          children
+            - label Function 1
+            - label Function 2
+            - label Function 3
+            - label Function 4
+theme light
+  palette antv
 ```
 
 ### Comparison
 
 ```infographic
-{
-  "template": "compare-binary",
-  "data": {
-    "items": [
-      { "label": "Option A", "desc": "Benefits" },
-      { "label": "Option B", "desc": "Trade-offs" }
-    ]
-  }
-}
+infographic compare-binary-horizontal-badge-card-fold
+data
+  title Company Strengths vs Weaknesses
+  desc Present core strengths and areas for improvement in the market
+  items
+    - label Strengths
+      children
+        - label Strong R&D
+          desc Technology leadership with independent innovation
+        - label High Customer Retention
+          desc Over 60% repurchase rate, good reputation
+        - label Complete Service System
+          desc Fast after-sales response, high satisfaction
+    - label Weaknesses
+      children
+        - label Weak Brand Exposure
+          desc Insufficient marketing, awareness needs improvement
+        - label Limited Channel Coverage
+          desc Incomplete online channel layout
+        - label High Operating Costs
+          desc Labor and logistics costs above industry average
+theme light
+  palette antv
 ```
 
 ### Chart
 
 ```infographic
-{
-  "template": "chart-bar",
-  "data": {
-    "items": [
-      { "label": "A", "value": 30 },
-      { "label": "B", "value": 50 },
-      { "label": "C", "value": 40 }
-    ]
-  }
-}
+infographic chart-bar-plain-text
+data
+  title Annual Revenue Growth
+  desc Compare recent three years and current year targets (unit: 100M yuan)
+  items
+    - label 2021
+      value 120
+      desc Initial transformation, steady exploration
+      icon lucide/sprout
+    - label 2022
+      value 150
+      desc Platform optimization, significant efficiency gains
+      icon lucide/zap
+    - label 2023
+      value 190
+      desc Deep digital integration, comprehensive growth
+      icon lucide/brain-circuit
+    - label 2024
+      value 240
+      desc Expand ecosystem collaboration, aim for new highs
+      icon lucide/trophy
+theme light
+  palette antv
 ```
 
-### With Icons
-
-```infographic
-{
-  "template": "list-row-simple-horizontal-arrow",
-  "data": {
-    "items": [
-      { "icon": "ref:search:computer network", "label": "Network", "desc": "Connect" },
-      { "icon": "ref:search:cloud", "label": "Cloud", "desc": "Store" },
-      { "icon": "ref:search:security", "label": "Security", "desc": "Protect" }
-    ]
-  }
-}
-```
 
 ## ⚙️ Configuration
 
@@ -205,29 +295,28 @@ skills/obsidian-infographics/
 When used as a skill, AI agents can generate AntV Infographic visualizations by outputting `infographic` code blocks in Obsidian markdown:
 
 ```infographic
-{
-  "template": "list-row-simple-horizontal-arrow",
-  "data": {
-    "items": [
-      { "label": "Step 1", "desc": "Start" },
-      { "label": "Step 2", "desc": "In Progress" },
-      { "label": "Step 3", "desc": "Complete" }
-    ]
-  }
-}
+infographic list-row-simple-horizontal-arrow
+data
+  items
+    - label Step 1
+      desc Start
+    - label Step 2
+      desc In Progress
+    - label Step 3
+      desc Complete
 ```
 
 ### Available Templates (200+)
 
-| Category | Templates |
-|----------|-----------|
-| **Lists** | list-row-simple-horizontal-arrow, list-row-simple-horizontal, list-column, list-grid, list-pyramid |
-| **Sequences** | sequence-horizontal, sequence-timeline, sequence-roadmap, sequence-steps |
-| **Comparison** | compare-binary, compare-swot |
-| **Hierarchy** | hierarchy-tree, hierarchy-structure |
-| **Charts** | chart-bar, chart-column, chart-line, chart-pie |
-| **Quadrant** | quadrant-simple, quadrant-quarter |
-| **Relations** | relation-circle, relation-dagre |
+| Category       | Templates                                                                                          |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| **Lists**      | list-row-simple-horizontal-arrow, list-row-simple-horizontal, list-column, list-grid, list-pyramid |
+| **Sequences**  | sequence-horizontal, sequence-timeline, sequence-roadmap, sequence-steps                           |
+| **Comparison** | compare-binary, compare-swot                                                                       |
+| **Hierarchy**  | hierarchy-tree, hierarchy-structure                                                                |
+| **Charts**     | chart-bar, chart-column, chart-line, chart-pie                                                     |
+| **Quadrant**   | quadrant-simple, quadrant-quarter                                                                  |
+| **Relations**  | relation-circle, relation-dagre                                                                    |
 
 See [Template Gallery](skills/obsidian-infographics/reference/GALLERY.md) for complete examples.
 
