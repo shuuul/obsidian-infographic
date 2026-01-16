@@ -40,12 +40,6 @@
 4. BRAT 将下载并保持插件更新
 5. 从社区插件中启用 **Infographic**
 
-### 从 Obsidian 社区插件安装
-
-1. 打开 **设置** → **社区插件**
-2. 搜索 "Infographic"
-3. 选择 **安装**，然后 **启用**
-
 ### 手动安装
 
 1. 从 [GitHub Releases](https://github.com/shuuul/obsidian-infographic/releases) 下载最新版本：

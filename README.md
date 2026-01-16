@@ -40,12 +40,6 @@ For beta/development versions, install using [BRAT](https://github.com/TfTHacker
 4. BRAT will download and keep the plugin updated
 5. Enable **Infographic** from Community Plugins
 
-### From Obsidian Community Plugins
-
-1. Open **Settings** → **Community plugins**
-2. Search for "Infographic"
-3. Select **Install**, then **Enable**
-
 ### Manual Installation
 
 1. Download the latest release from [GitHub Releases](https://github.com/shuuul/obsidian-infographic/releases):
