@@ -20,7 +20,7 @@ Render [AntV Infographic](https://github.com/antvis/Infographic) visualizations 
 
 - 🎨 **200+ Built-in Templates** - Process flows, timelines, hierarchies, charts, and more
 - 📝 **Dual Syntax Support** - Use JSON configuration or AntV's declarative DSL
-- 🖼️ **Export Options** - Save infographics as SVG or PNG
+- 🖼️ **Export Options** - Save infographics as SVG, PNG, or PDF
 - 🌓 **Theme Support** - Auto-detect or force light/dark mode
 - 📐 **Responsive Design** - Automatic resize handling
 - 🔄 **Live Reload** - Refresh all infographics with a single command
@@ -277,7 +277,7 @@ Access settings via **Settings** → **Community plugins** → **Infographic**.
 
 Each rendered infographic shows a toolbar:
 - **Copy** - Copy source code to clipboard
-- **Export** - Save as SVG or PNG
+- **Export** - Save as SVG, PNG, or PDF
 
 ## 🤖 Agent Skill
 
