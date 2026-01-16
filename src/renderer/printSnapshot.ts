@@ -358,7 +358,7 @@ export async function renderStaticSnapshotDirect(
 			// Try to persist and swap to a vault-backed resource URL for Electron PDF reliability.
 			try {
 				const ext = dataUrl.startsWith("data:image/png") ? "png" : "svg";
-				const persisted = await persistSnapshotDataUrl(app, cacheDir, dataUrl, ext as "png" | "svg", `${keyBase}|${ext}`);
+				const persisted = await persistSnapshotDataUrl(app, cacheDir, dataUrl, ext, `${keyBase}|${ext}`);
 				img.setAttribute("src", persisted);
 			} catch {
 				// keep data URL if persistence fails
