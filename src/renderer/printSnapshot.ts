@@ -197,3 +197,110 @@ function setStaticImage(printEl: HTMLElement, wrapperEl: HTMLElement, src: strin
 	wrapperEl.addClass("infographic-has-print");
 }
 
+/**
+ * Render a static snapshot DIRECTLY to an element for PDF export.
+ * This matches Excalidraw's approach: render image directly into the element.
+ * No wrapper/CSS swapping - the image is simply appended to the DOM.
+ * 
+ * This is the preferred method for PDF export as it ensures the image
+ * is present in the DOM when Obsidian captures it for PDF generation.
+ */
+export async function renderStaticSnapshotDirect(
+	app: App,
+	cacheDir: string,
+	content: string,
+	isJson: boolean,
+	theme: string,
+	targetEl: HTMLElement
+): Promise<void> {
+	// Create a temporary off-screen container for rendering
+	const tempContainer = document.createElement("div");
+	tempContainer.addClass("infographic-offscreen-render");
+	document.body.appendChild(tempContainer);
+
+	let infographic: Infographic | null = null;
+
+	try {
+		const width = 800;
+		const height = 600;
+
+		if (isJson) {
+			const parsed = JSON.parse(content) as ParsedInfographicConfig;
+			infographic = new Infographic({
+				container: tempContainer,
+				width: parsed.width ?? width,
+				height: parsed.height ?? height,
+				theme: parsed.theme ?? theme,
+				...parsed,
+			});
+			infographic.render();
+		} else {
+			infographic = new Infographic({
+				container: tempContainer,
+				width,
+				height,
+				theme,
+			});
+			infographic.render(content);
+		}
+
+		// Wait a frame for rendering to complete
+		await new Promise((resolve) => requestAnimationFrame(resolve));
+
+		const keyBase = `${theme}|${isJson ? "json" : "dsl"}|${content}`;
+
+		// Try PNG first (more reliable for PDF)
+		let imgSrc: string | null = null;
+		try {
+			const dataUrl = await infographic.toDataURL({ type: "png" });
+			if (dataUrl) {
+				imgSrc = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "png", `${keyBase}|png`);
+			}
+		} catch {
+			// Fall back to SVG
+		}
+
+		// Try SVG as fallback
+		if (!imgSrc) {
+			try {
+				const dataUrl = await infographic.toDataURL({ type: "svg" });
+				if (dataUrl) {
+					imgSrc = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "svg", `${keyBase}|svg`);
+				}
+			} catch {
+				// If all fails, try DOM-based extraction
+			}
+		}
+
+		// DOM-based SVG extraction as last resort
+		if (!imgSrc) {
+			const svg = tempContainer.querySelector<SVGSVGElement>("svg");
+			if (svg) {
+				ensureSvgNamespace(svg);
+				const serialized = new XMLSerializer().serializeToString(svg);
+				const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+				imgSrc = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "svg", `${keyBase}|dom|svg`);
+			}
+		}
+
+		// Append image directly to target element (like Excalidraw does)
+		if (imgSrc) {
+			const img = targetEl.createEl("img", { cls: "infographic-print-img" });
+			img.setAttribute("src", imgSrc);
+			img.setAttribute("alt", "Infographic");
+		}
+	} catch (e) {
+		console.error("[Infographic Plugin] Failed to render static snapshot for PDF:", e);
+	} finally {
+		// Cleanup
+		if (infographic) {
+			try {
+				infographic.destroy();
+			} catch {
+				// Ignore cleanup errors
+			}
+		}
+		tempContainer.remove();
+	}
+}
+

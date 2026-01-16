@@ -2,7 +2,7 @@ import {Editor, MarkdownView, Notice, Plugin} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
-import {refreshAllInfographicPrintSnapshots, refreshInfographicPrintSnapshot, renderStaticSnapshot} from "./renderer/printSnapshot";
+import {refreshAllInfographicPrintSnapshots, refreshInfographicPrintSnapshot, renderStaticSnapshotDirect} from "./renderer/printSnapshot";
 import {SourceCodeModal, ExportModal} from "./ui";
 
 /**
@@ -125,33 +125,32 @@ export default class InfographicPlugin extends Plugin {
 		const isPrinting = isPrintingMode();
 		const theme = this.settings.theme === "auto" ? (this.isDarkMode() ? "dark" : "light") : this.settings.theme;
 
-		const container = el.createDiv({cls: "infographic-wrapper"});
-
-		const renderContainer = container.createDiv({cls: "infographic-render"});
-		// Print-only fallback snapshot container (populated with a static <img>).
-		const printContainer = container.createDiv({cls: "infographic-print"});
-
-		// In PDF export mode, render a static snapshot and AWAIT it.
-		// This ensures the image is ready before Obsidian captures the DOM for PDF.
-		// We skip the live renderer in PDF mode since it won't render properly anyway.
+		// In PDF export mode, render a static image DIRECTLY to the element.
+		// This matches Excalidraw's approach: empty the container and append an <img> directly.
+		// No wrapper/CSS swapping needed - the image is simply there in the DOM.
 		if (isPrinting) {
+			el.empty();
+			el.addClass("infographic-print-container");
 			// Await the static image generation for PDF export.
-			// This is the key difference from normal mode - we must wait for the image.
-			await renderStaticSnapshot(
+			await renderStaticSnapshotDirect(
 				this.app,
 				cacheDir,
 				result.content,
 				result.isJson,
 				theme,
-				printContainer,
-				container
+				el
 			);
-			// In PDF mode, don't create the live renderer - just show the static image.
-			// The CSS will handle showing .infographic-print and hiding .infographic-render.
 			return;
 		}
 
-		// Normal (non-PDF) mode: create live renderer
+		// Normal (non-PDF) mode: create wrapper with live renderer
+		const container = el.createDiv({cls: "infographic-wrapper"});
+
+		const renderContainer = container.createDiv({cls: "infographic-render"});
+		// Print-only fallback snapshot container (populated with a static <img>).
+		// Created but not stored - refreshInfographicPrintSnapshot queries for it.
+		container.createDiv({cls: "infographic-print"});
+
 		const renderChild = new InfographicRenderChild(renderContainer, {
 			app: this.app,
 			cacheDir,

@@ -6,6 +6,17 @@
 	visibility: hidden;
 }
 
+/* Direct print container for PDF export (no wrapper needed) */
+.infographic-print-container {
+	width: 100%;
+}
+
+.infographic-print-container .infographic-print-img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
 .infographic-wrapper {
 	position: relative;
 	margin: 1em 0;
