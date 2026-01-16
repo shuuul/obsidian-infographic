@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-infographic",
-	"version": "0.1.7",
+	"version": "0.1.8-preview.1",
 	"description": "Render AntV Infographic visualizations from fenced code blocks in Obsidian",
 	"main": "main.js",
 	"type": "module",

@@ -2,6 +2,7 @@ import {Editor, MarkdownView, Notice, Plugin} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
+import {refreshAllInfographicPrintSnapshots, refreshInfographicPrintSnapshot} from "./renderer/printSnapshot";
 import {SourceCodeModal, ExportModal} from "./ui";
 
 const INFOGRAPHIC_TEMPLATE = `{
@@ -29,6 +30,11 @@ export default class InfographicPlugin extends Plugin {
 
 		this.registerCommands();
 		this.registerEventHandlers();
+
+		// Ensure PDF export (print pipeline) uses a static snapshot instead of live rendering.
+		this.registerDomEvent(window, "beforeprint", () => {
+			refreshAllInfographicPrintSnapshots(document);
+		});
 	}
 
 	private registerEventHandlers(): void {
@@ -107,6 +113,8 @@ export default class InfographicPlugin extends Plugin {
 		const container = el.createDiv({cls: "infographic-wrapper"});
 
 		const renderContainer = container.createDiv({cls: "infographic-render"});
+		// Print-only fallback snapshot container (populated with a static <img>).
+		container.createDiv({cls: "infographic-print"});
 		const renderChild = new InfographicRenderChild(renderContainer, {
 			content: result.content,
 			isJson: result.isJson,
@@ -114,6 +122,8 @@ export default class InfographicPlugin extends Plugin {
 			isDarkMode: this.isDarkMode(),
 		});
 		ctx.addChild(renderChild);
+		// Populate print snapshot after the live render has had a chance to paint.
+		requestAnimationFrame(() => refreshInfographicPrintSnapshot(container));
 
 		// Always show toolbar with Copy and Export buttons
 		const toolbar = container.createDiv({cls: "infographic-toolbar"});

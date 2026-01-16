@@ -3,6 +3,10 @@
 	margin: 1em 0;
 }
 
+.infographic-print {
+	display: none;
+}
+
 .infographic-hidden {
 	display: none;
 }
@@ -221,4 +225,28 @@
 
 .infographic-wrapper .infographic-render {
 	opacity: 1;
+}
+
+@media print {
+	.infographic-toolbar {
+		display: none !important;
+	}
+
+	.infographic-render {
+		display: none !important;
+	}
+
+	.infographic-print {
+		display: block !important;
+	}
+
+	.infographic-print-img {
+		max-width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	.infographic-wrapper {
+		break-inside: avoid;
+	}
 }

@@ -28,8 +28,13 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   tag="${GITHUB_REF#refs/tags/}"
+                  prerelease_flag=""
+                  if [[ "$tag" == *"-preview."* ]]; then
+                    prerelease_flag="--prerelease"
+                  fi
 
                   gh release create "$tag" \
                     --title="Infographic ${tag}" \
                     --draft=false \
+                    $prerelease_flag \
                     main.js manifest.json styles.css

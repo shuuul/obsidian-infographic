@@ -25,6 +25,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	private options: RenderOptions;
 	private loadingEl: HTMLElement | null = null;
 	private aspectRatio: number = DEFAULT_ASPECT_RATIO;
+	private snapshotRefreshTimer: number | null = null;
 
 	constructor(containerEl: HTMLElement, options: RenderOptions) {
 		super(containerEl);
@@ -94,6 +95,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 			}
 			this.hideLoading();
 			this.updateAspectRatioFromSVG();
+			this.schedulePrintSnapshotRefresh();
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			console.error("[Infographic Plugin] Render error:", message, {
@@ -115,6 +117,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 					if (width > 0) {
 						const height = width / this.aspectRatio;
 						this.infographic.update({ width, height });
+						this.schedulePrintSnapshotRefresh();
 					}
 				}
 			}
@@ -177,10 +180,56 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	}
 
 	private cleanup(): void {
+		if (this.snapshotRefreshTimer) {
+			window.clearTimeout(this.snapshotRefreshTimer);
+			this.snapshotRefreshTimer = null;
+		}
 		if (this.resizeObserver) {
 			this.resizeObserver.disconnect();
 			this.resizeObserver = null;
 		}
 		this.destroyInfographic();
+	}
+
+	private getPrintContainerEl(): HTMLElement | null {
+		const wrapper = this.containerEl.closest<HTMLElement>(".infographic-wrapper");
+		return wrapper?.querySelector<HTMLElement>(".infographic-print") ?? null;
+	}
+
+	private setPrintSnapshot(dataUrl: string, source: "antv" | "dom"): void {
+		const printEl = this.getPrintContainerEl();
+		if (!printEl) return;
+		printEl.empty();
+		const img = printEl.createEl("img", { cls: "infographic-print-img" });
+		img.dataset.source = source;
+		img.setAttribute("src", dataUrl);
+		img.setAttribute("alt", "Infographic");
+	}
+
+	private schedulePrintSnapshotRefresh(): void {
+		if (this.snapshotRefreshTimer) window.clearTimeout(this.snapshotRefreshTimer);
+		this.snapshotRefreshTimer = window.setTimeout(() => {
+			this.snapshotRefreshTimer = null;
+			void this.generatePrintSnapshot();
+		}, 250);
+	}
+
+	private async generatePrintSnapshot(): Promise<void> {
+		if (!this.infographic) return;
+		// Prefer PNG for printing reliability.
+		try {
+			const dataUrl = await this.infographic.toDataURL({ type: "png" });
+			if (dataUrl) this.setPrintSnapshot(dataUrl, "antv");
+			return;
+		} catch {
+			// Fall back to SVG data-url export.
+		}
+
+		try {
+			const dataUrl = await this.infographic.toDataURL({ type: "svg" });
+			if (dataUrl) this.setPrintSnapshot(dataUrl, "antv");
+		} catch {
+			// If export fails, do nothing; the DOM snapshot fallback may still work via beforeprint.
+		}
 	}
 }
