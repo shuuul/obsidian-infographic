@@ -122,6 +122,8 @@ export default class InfographicPlugin extends Plugin {
 			isDarkMode: this.isDarkMode(),
 		});
 		ctx.addChild(renderChild);
+		// Ensure rendering even in pipelines that don't call MarkdownRenderChild.onload (e.g. PDF export).
+		renderChild.ensureStarted();
 		// Populate print snapshot after the live render has had a chance to paint.
 		requestAnimationFrame(() => refreshInfographicPrintSnapshot(container));
 

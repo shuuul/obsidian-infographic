@@ -232,11 +232,21 @@
 		display: none !important;
 	}
 
+	/* Default: keep live visible (some export paths might not have snapshots ready). */
 	.infographic-render {
-		display: none !important;
+		display: block !important;
 	}
 
 	.infographic-print {
+		display: none !important;
+	}
+
+	/* When a snapshot exists, switch to the print-safe image. */
+	.infographic-wrapper.infographic-has-print .infographic-render {
+		display: none !important;
+	}
+
+	.infographic-wrapper.infographic-has-print .infographic-print {
 		display: block !important;
 	}
 

@@ -38,6 +38,7 @@ export function refreshInfographicPrintSnapshot(wrapperEl: HTMLElement): void {
 		img.dataset.source = "dom";
 		img.setAttribute("src", url);
 		img.setAttribute("alt", "Infographic");
+		wrapperEl.addClass("infographic-has-print");
 		return;
 	}
 
@@ -50,6 +51,7 @@ export function refreshInfographicPrintSnapshot(wrapperEl: HTMLElement): void {
 		img.dataset.source = "dom";
 		img.setAttribute("src", url);
 		img.setAttribute("alt", "Infographic");
+		wrapperEl.addClass("infographic-has-print");
 	}
 }
 

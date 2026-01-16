@@ -26,6 +26,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	private loadingEl: HTMLElement | null = null;
 	private aspectRatio: number = DEFAULT_ASPECT_RATIO;
 	private snapshotRefreshTimer: number | null = null;
+	private started: boolean = false;
 
 	constructor(containerEl: HTMLElement, options: RenderOptions) {
 		super(containerEl);
@@ -33,9 +34,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	}
 
 	onload(): void {
-		this.showLoading();
-		this.render();
-		this.setupResizeObserver();
+		this.ensureStarted();
 	}
 
 	onunload(): void {
@@ -44,6 +43,18 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 
 	getInfographic(): Infographic | null {
 		return this.infographic;
+	}
+
+	/**
+	 * Some Obsidian render pipelines (notably PDF export) may not invoke
+	 * MarkdownRenderChild lifecycle hooks. This makes rendering idempotent and callable.
+	 */
+	ensureStarted(): void {
+		if (this.started) return;
+		this.started = true;
+		this.showLoading();
+		this.render();
+		this.setupResizeObserver();
 	}
 
 	private getTheme(): string | undefined {
@@ -199,6 +210,8 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	private setPrintSnapshot(dataUrl: string, source: "antv" | "dom"): void {
 		const printEl = this.getPrintContainerEl();
 		if (!printEl) return;
+		const wrapper = this.containerEl.closest<HTMLElement>(".infographic-wrapper");
+		wrapper?.addClass("infographic-has-print");
 		printEl.empty();
 		const img = printEl.createEl("img", { cls: "infographic-print-img" });
 		img.dataset.source = source;
