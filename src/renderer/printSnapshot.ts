@@ -48,13 +48,13 @@ export function refreshInfographicPrintSnapshot(wrapperEl: HTMLElement, app?: Ap
 		printEl.empty();
 		const img = printEl.createEl("img", { cls: "infographic-print-img" });
 		img.dataset.source = "dom";
-		img.setAttribute("src", url);
+		img.setAttribute("src", url); // keep data URL primary
 		img.setAttribute("alt", "Infographic");
 		wrapperEl.addClass("infographic-has-print");
 		// Best-effort: persist to vault-backed resource URL (more reliable for PDF export in Electron).
 		if (app && cacheDir) {
 			void persistSnapshotDataUrl(app, cacheDir, url, "svg", `dom|svg|${url}`).then((src) => {
-				img.setAttribute("src", src);
+				img.dataset.persistedSrc = src;
 			}).catch(() => {
 				// ignore
 			});
@@ -69,12 +69,12 @@ export function refreshInfographicPrintSnapshot(wrapperEl: HTMLElement, app?: Ap
 		if (!url) return;
 		const img = printEl.createEl("img", { cls: "infographic-print-img" });
 		img.dataset.source = "dom";
-		img.setAttribute("src", url);
+		img.setAttribute("src", url); // keep data URL primary
 		img.setAttribute("alt", "Infographic");
 		wrapperEl.addClass("infographic-has-print");
 		if (app && cacheDir) {
 			void persistSnapshotDataUrl(app, cacheDir, url, "png", `dom|png|${url}`).then((src) => {
-				img.setAttribute("src", src);
+				img.dataset.persistedSrc = src;
 			}).catch(() => {
 				// ignore
 			});

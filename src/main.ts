@@ -167,6 +167,20 @@ export default class InfographicPlugin extends Plugin {
 		// Populate print snapshot after the live render has had a chance to paint.
 		requestAnimationFrame(() => refreshInfographicPrintSnapshot(container, this.app, cacheDir));
 
+		// Force-generate a static snapshot into the print container so that PDF export
+		// always has a ready <img>, even if .print detection fails or happens late.
+		const printEl = container.querySelector<HTMLElement>(".infographic-print");
+		if (printEl) {
+			void renderStaticSnapshotDirect(
+				this.app,
+				cacheDir,
+				result.content,
+				result.isJson,
+				theme,
+				printEl
+			);
+		}
+
 		// Always show toolbar with Copy and Export buttons (hidden in print via CSS)
 		const toolbar = container.createDiv({cls: "infographic-toolbar"});
 		

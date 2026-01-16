@@ -213,7 +213,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		return wrapper?.querySelector<HTMLElement>(".infographic-print") ?? null;
 	}
 
-	private setPrintSnapshot(dataUrl: string, source: "antv" | "dom"): void {
+	private setPrintSnapshot(dataUrl: string, source: "antv" | "dom", persisted?: string): void {
 		const printEl = this.getPrintContainerEl();
 		if (!printEl) return;
 		const wrapper = this.containerEl.closest<HTMLElement>(".infographic-wrapper");
@@ -221,7 +221,11 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		printEl.empty();
 		const img = printEl.createEl("img", { cls: "infographic-print-img" });
 		img.dataset.source = source;
+		// Keep data URL primary for maximum compatibility with PDF renderers.
 		img.setAttribute("src", dataUrl);
+		if (persisted) {
+			img.dataset.persistedSrc = persisted;
+		}
 		img.setAttribute("alt", "Infographic");
 	}
 
@@ -240,8 +244,13 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		try {
 			const dataUrl = await this.infographic.toDataURL({ type: "png" });
 			if (dataUrl) {
-				const src = await persistSnapshotDataUrl(this.options.app, this.options.cacheDir, dataUrl, "png", `${keyBase}|png`);
-				this.setPrintSnapshot(src, "antv");
+				let persisted: string | undefined;
+				try {
+					persisted = await persistSnapshotDataUrl(this.options.app, this.options.cacheDir, dataUrl, "png", `${keyBase}|png`);
+				} catch {
+					// keep dataUrl only
+				}
+				this.setPrintSnapshot(dataUrl, "antv", persisted);
 			}
 			return;
 		} catch {
@@ -251,8 +260,13 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		try {
 			const dataUrl = await this.infographic.toDataURL({ type: "svg" });
 			if (dataUrl) {
-				const src = await persistSnapshotDataUrl(this.options.app, this.options.cacheDir, dataUrl, "svg", `${keyBase}|svg`);
-				this.setPrintSnapshot(src, "antv");
+				let persisted: string | undefined;
+				try {
+					persisted = await persistSnapshotDataUrl(this.options.app, this.options.cacheDir, dataUrl, "svg", `${keyBase}|svg`);
+				} catch {
+					// keep dataUrl only
+				}
+				this.setPrintSnapshot(dataUrl, "antv", persisted);
 			}
 		} catch {
 			// If export fails, do nothing; the DOM snapshot fallback may still work via beforeprint.
