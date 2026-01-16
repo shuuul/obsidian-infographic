@@ -260,3 +260,40 @@
 		break-inside: avoid;
 	}
 }
+
+/*
+ * Obsidian "Export to PDF" is implemented via an Electron print pipeline.
+ * In some Electron/Obsidian versions, @media print and beforeprint/afterprint
+ * events can be unreliable for printToPDF. Obsidian also renders the export
+ * inside a dedicated container that commonly carries a `.print` class.
+ * These rules mirror the @media print behavior but do not rely on media queries.
+ */
+.print .infographic-toolbar {
+	display: none !important;
+}
+
+.print .infographic-render {
+	display: block !important;
+}
+
+.print .infographic-print {
+	display: none !important;
+}
+
+.print .infographic-wrapper.infographic-has-print .infographic-render {
+	display: none !important;
+}
+
+.print .infographic-wrapper.infographic-has-print .infographic-print {
+	display: block !important;
+}
+
+.print .infographic-print-img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+}
+
+.print .infographic-wrapper {
+	break-inside: avoid;
+}
