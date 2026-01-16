@@ -106,10 +106,7 @@ export async function renderStaticSnapshot(
 ): Promise<void> {
 	// Create a temporary off-screen container for rendering
 	const tempContainer = document.createElement("div");
-	tempContainer.style.position = "absolute";
-	tempContainer.style.left = "-9999px";
-	tempContainer.style.top = "-9999px";
-	tempContainer.style.visibility = "hidden";
+	tempContainer.addClass("infographic-offscreen-render");
 	document.body.appendChild(tempContainer);
 
 	let infographic: Infographic | null = null;

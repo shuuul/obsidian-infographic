@@ -1,3 +1,11 @@
+/* Off-screen container for rendering static snapshots (PDF export) */
+.infographic-offscreen-render {
+	position: absolute;
+	left: -9999px;
+	top: -9999px;
+	visibility: hidden;
+}
+
 .infographic-wrapper {
 	position: relative;
 	margin: 1em 0;
