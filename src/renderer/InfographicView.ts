@@ -1,12 +1,18 @@
+import type {App} from "obsidian";
 import {MarkdownRenderChild} from "obsidian";
 import {Infographic, type InfographicOptions} from "@antv/infographic";
 import type {ThemeSetting} from "../settings";
+import {persistSnapshotDataUrl} from "./snapshotFileCache";
 
 export interface RenderOptions {
+	app: App;
+	cacheDir: string;
 	content: string;
 	isJson: boolean;
 	theme: ThemeSetting;
 	isDarkMode: boolean;
+	/** True when Obsidian is in PDF export mode */
+	isPrinting?: boolean;
 }
 
 interface ParsedInfographicConfig {
@@ -229,10 +235,14 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 
 	private async generatePrintSnapshot(): Promise<void> {
 		if (!this.infographic) return;
+		const keyBase = `${this.getTheme() ?? ""}|${this.options.isJson ? "json" : "dsl"}|${this.options.content}`;
 		// Prefer PNG for printing reliability.
 		try {
 			const dataUrl = await this.infographic.toDataURL({ type: "png" });
-			if (dataUrl) this.setPrintSnapshot(dataUrl, "antv");
+			if (dataUrl) {
+				const src = await persistSnapshotDataUrl(this.options.app, this.options.cacheDir, dataUrl, "png", `${keyBase}|png`);
+				this.setPrintSnapshot(src, "antv");
+			}
 			return;
 		} catch {
 			// Fall back to SVG data-url export.
@@ -240,7 +250,10 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 
 		try {
 			const dataUrl = await this.infographic.toDataURL({ type: "svg" });
-			if (dataUrl) this.setPrintSnapshot(dataUrl, "antv");
+			if (dataUrl) {
+				const src = await persistSnapshotDataUrl(this.options.app, this.options.cacheDir, dataUrl, "svg", `${keyBase}|svg`);
+				this.setPrintSnapshot(src, "antv");
+			}
 		} catch {
 			// If export fails, do nothing; the DOM snapshot fallback may still work via beforeprint.
 		}

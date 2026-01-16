@@ -2,8 +2,18 @@ import {Editor, MarkdownView, Notice, Plugin} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
-import {refreshAllInfographicPrintSnapshots, refreshInfographicPrintSnapshot} from "./renderer/printSnapshot";
+import {refreshAllInfographicPrintSnapshots, refreshInfographicPrintSnapshot, renderStaticSnapshot} from "./renderer/printSnapshot";
 import {SourceCodeModal, ExportModal} from "./ui";
+
+/**
+ * Detect if Obsidian is in PDF export mode.
+ * Obsidian renders PDF export inside a container with `.print` class on body or as a direct child.
+ * This mirrors the detection pattern used by obsidian-excalidraw-plugin.
+ */
+function isPrintingMode(): boolean {
+	return Boolean(document.body.querySelectorAll("body > .print").length > 0) ||
+		document.body.classList.contains("print");
+}
 
 const INFOGRAPHIC_TEMPLATE = `{
   "template": "list-row-simple-horizontal-arrow",
@@ -22,8 +32,9 @@ export default class InfographicPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		this.registerMarkdownCodeBlockProcessor("infographic", (source, el, ctx) => {
-			this.processInfographicBlock(source, el, ctx);
+		// Use async callback to properly await image generation during PDF export
+		this.registerMarkdownCodeBlockProcessor("infographic", async (source, el, ctx) => {
+			await this.processInfographicBlock(source, el, ctx);
 		});
 
 		this.addSettingTab(new InfographicSettingTab(this.app, this));
@@ -33,7 +44,7 @@ export default class InfographicPlugin extends Plugin {
 
 		// Ensure PDF export (print pipeline) uses a static snapshot instead of live rendering.
 		this.registerDomEvent(window, "beforeprint", () => {
-			refreshAllInfographicPrintSnapshots(document);
+			refreshAllInfographicPrintSnapshots(document, this.app, `${this.manifest.dir}/print-cache`);
 		});
 	}
 
@@ -90,11 +101,11 @@ export default class InfographicPlugin extends Plugin {
 		return document.body.classList.contains("theme-dark");
 	}
 
-	private processInfographicBlock(
+	private async processInfographicBlock(
 		source: string,
 		el: HTMLElement,
 		ctx: import("obsidian").MarkdownPostProcessorContext
-	): void {
+	): Promise<void> {
 		if (!this.settings.autoRender) {
 			return;
 		}
@@ -110,24 +121,54 @@ export default class InfographicPlugin extends Plugin {
 			return;
 		}
 
+		const cacheDir = `${this.manifest.dir}/print-cache`;
+		const isPrinting = isPrintingMode();
+		const theme = this.settings.theme === "auto" ? (this.isDarkMode() ? "dark" : "light") : this.settings.theme;
+
 		const container = el.createDiv({cls: "infographic-wrapper"});
 
 		const renderContainer = container.createDiv({cls: "infographic-render"});
 		// Print-only fallback snapshot container (populated with a static <img>).
-		container.createDiv({cls: "infographic-print"});
+		const printContainer = container.createDiv({cls: "infographic-print"});
+
+		// In PDF export mode, render a static snapshot and AWAIT it.
+		// This ensures the image is ready before Obsidian captures the DOM for PDF.
+		// We skip the live renderer in PDF mode since it won't render properly anyway.
+		if (isPrinting) {
+			// Await the static image generation for PDF export.
+			// This is the key difference from normal mode - we must wait for the image.
+			await renderStaticSnapshot(
+				this.app,
+				cacheDir,
+				result.content,
+				result.isJson,
+				theme,
+				printContainer,
+				container
+			);
+			// In PDF mode, don't create the live renderer - just show the static image.
+			// The CSS will handle showing .infographic-print and hiding .infographic-render.
+			return;
+		}
+
+		// Normal (non-PDF) mode: create live renderer
 		const renderChild = new InfographicRenderChild(renderContainer, {
+			app: this.app,
+			cacheDir,
 			content: result.content,
 			isJson: result.isJson,
 			theme: this.settings.theme,
 			isDarkMode: this.isDarkMode(),
+			isPrinting: false,
 		});
 		ctx.addChild(renderChild);
 		// Ensure rendering even in pipelines that don't call MarkdownRenderChild.onload (e.g. PDF export).
 		renderChild.ensureStarted();
-		// Populate print snapshot after the live render has had a chance to paint.
-		requestAnimationFrame(() => refreshInfographicPrintSnapshot(container));
 
-		// Always show toolbar with Copy and Export buttons
+		// Populate print snapshot after the live render has had a chance to paint.
+		requestAnimationFrame(() => refreshInfographicPrintSnapshot(container, this.app, cacheDir));
+
+		// Always show toolbar with Copy and Export buttons (hidden in print via CSS)
 		const toolbar = container.createDiv({cls: "infographic-toolbar"});
 		
 		const copyBtn = toolbar.createEl("button", {

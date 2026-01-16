@@ -2,7 +2,7 @@
 
 **Generated:** 2026-01-14
 **Branch:** main
-**Version:** 0.1.8-preview.3
+**Version:** 0.1.8-preview.5
 
 ## OVERVIEW
 Obsidian plugin that renders AntV Infographic visualizations from fenced `infographic` code blocks. Integrates `@antv/infographic` library into Obsidian's markdown preview.
