@@ -1,9 +1,12 @@
-/* Off-screen container for rendering static snapshots (PDF export) */
+/* Off-screen container for rendering static snapshots (PDF export).
+ * Note: Actual positioning is done via inline styles in printSnapshot.ts
+ * to use clip-path instead of visibility:hidden for better browser compatibility.
+ * This class serves as a marker and fallback. */
 .infographic-offscreen-render {
-	position: absolute;
-	left: -9999px;
-	top: -9999px;
-	visibility: hidden;
+	position: fixed;
+	clip-path: inset(100%);
+	pointer-events: none;
+	z-index: -9999;
 }
 
 /* Direct print container for PDF export (no wrapper needed) */

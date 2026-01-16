@@ -104,9 +104,20 @@ export async function renderStaticSnapshot(
 	printEl: HTMLElement,
 	wrapperEl: HTMLElement
 ): Promise<void> {
-	// Create a temporary off-screen container for rendering
+	// Create a temporary container for rendering.
+	// Use clip-path instead of visibility:hidden to ensure the browser actually renders the content.
 	const tempContainer = document.createElement("div");
 	tempContainer.addClass("infographic-offscreen-render");
+	tempContainer.style.cssText = `
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 800px;
+		height: 600px;
+		clip-path: inset(100%);
+		pointer-events: none;
+		z-index: -9999;
+	`;
 	document.body.appendChild(tempContainer);
 
 	let infographic: Infographic | null = null;
@@ -135,33 +146,37 @@ export async function renderStaticSnapshot(
 			infographic.render(content);
 		}
 
-		// Wait a frame for rendering to complete
-		await new Promise((resolve) => requestAnimationFrame(resolve));
+		// Wait multiple frames for rendering to complete.
+		await waitForRender(3);
 
 		const keyBase = `${theme}|${isJson ? "json" : "dsl"}|${content}`;
+		const persistOptions = (ext: "png" | "svg") => ({
+			app,
+			cacheDir,
+			ext,
+			cacheKey: `${keyBase}|${ext}`,
+		});
 
 		// Try PNG first (more reliable for PDF)
 		try {
 			const dataUrl = await infographic.toDataURL({ type: "png" });
 			if (dataUrl) {
-				const src = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "png", `${keyBase}|png`);
-				setStaticImage(printEl, wrapperEl, src);
+				await setStaticImage(printEl, wrapperEl, dataUrl, persistOptions("png"));
 				return;
 			}
-		} catch {
-			// Fall back to SVG
+		} catch (e) {
+			console.debug("[Infographic Plugin] PNG export failed, trying SVG:", e);
 		}
 
 		// Try SVG as fallback
 		try {
 			const dataUrl = await infographic.toDataURL({ type: "svg" });
 			if (dataUrl) {
-				const src = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "svg", `${keyBase}|svg`);
-				setStaticImage(printEl, wrapperEl, src);
+				await setStaticImage(printEl, wrapperEl, dataUrl, persistOptions("svg"));
 				return;
 			}
-		} catch {
-			// If all fails, try DOM-based extraction
+		} catch (e) {
+			console.debug("[Infographic Plugin] SVG export failed, trying DOM extraction:", e);
 		}
 
 		// DOM-based SVG extraction as last resort
@@ -170,8 +185,12 @@ export async function renderStaticSnapshot(
 			ensureSvgNamespace(svg);
 			const serialized = new XMLSerializer().serializeToString(svg);
 			const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
-			const src = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "svg", `${keyBase}|dom|svg`);
-			setStaticImage(printEl, wrapperEl, src);
+			await setStaticImage(printEl, wrapperEl, dataUrl, {
+				app,
+				cacheDir,
+				ext: "svg",
+				cacheKey: `${keyBase}|dom|svg`,
+			});
 		}
 	} catch (e) {
 		console.error("[Infographic Plugin] Failed to render static snapshot for PDF:", e);
@@ -188,13 +207,53 @@ export async function renderStaticSnapshot(
 	}
 }
 
-function setStaticImage(printEl: HTMLElement, wrapperEl: HTMLElement, src: string): void {
+interface PersistOptions {
+	app: App;
+	cacheDir: string;
+	ext: "png" | "svg";
+	cacheKey: string;
+}
+
+async function setStaticImage(
+	printEl: HTMLElement,
+	wrapperEl: HTMLElement,
+	src: string,
+	persist?: PersistOptions
+): Promise<void> {
 	printEl.empty();
 	const img = printEl.createEl("img", { cls: "infographic-print-img" });
 	img.dataset.source = "static";
 	img.setAttribute("src", src);
 	img.setAttribute("alt", "Infographic");
 	wrapperEl.addClass("infographic-has-print");
+
+	// Try to persist to vault-backed resource; fall back to in-memory data URL on failure.
+	if (persist) {
+		try {
+			const persisted = await persistSnapshotDataUrl(
+				persist.app,
+				persist.cacheDir,
+				src,
+				persist.ext,
+				persist.cacheKey
+			);
+			img.setAttribute("src", persisted);
+		} catch {
+			// keep the original data URL
+		}
+	}
+}
+
+/**
+ * Wait for multiple animation frames to ensure rendering completes.
+ * Some complex infographics need more than one frame to fully render.
+ */
+async function waitForRender(frames: number = 3): Promise<void> {
+	for (let i = 0; i < frames; i++) {
+		await new Promise((resolve) => requestAnimationFrame(resolve));
+	}
+	// Additional small delay to ensure canvas/SVG operations complete
+	await new Promise((resolve) => setTimeout(resolve, 50));
 }
 
 /**
@@ -213,9 +272,22 @@ export async function renderStaticSnapshotDirect(
 	theme: string,
 	targetEl: HTMLElement
 ): Promise<void> {
-	// Create a temporary off-screen container for rendering
+	// Create a temporary container for rendering.
+	// Use clip-path instead of visibility:hidden to ensure the browser actually renders the content.
+	// Some browsers skip rendering for hidden elements, which breaks toDataURL().
 	const tempContainer = document.createElement("div");
 	tempContainer.addClass("infographic-offscreen-render");
+	// Override CSS to use clip instead of visibility for better rendering compatibility
+	tempContainer.style.cssText = `
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 800px;
+		height: 600px;
+		clip-path: inset(100%);
+		pointer-events: none;
+		z-index: -9999;
+	`;
 	document.body.appendChild(tempContainer);
 
 	let infographic: Infographic | null = null;
@@ -244,50 +316,55 @@ export async function renderStaticSnapshotDirect(
 			infographic.render(content);
 		}
 
-		// Wait a frame for rendering to complete
-		await new Promise((resolve) => requestAnimationFrame(resolve));
+		// Wait multiple frames for rendering to complete.
+		// AntV infographics may need several frames to fully render complex charts.
+		await waitForRender(3);
 
 		const keyBase = `${theme}|${isJson ? "json" : "dsl"}|${content}`;
 
 		// Try PNG first (more reliable for PDF)
-		let imgSrc: string | null = null;
+		let dataUrl: string | null = null;
 		try {
-			const dataUrl = await infographic.toDataURL({ type: "png" });
-			if (dataUrl) {
-				imgSrc = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "png", `${keyBase}|png`);
-			}
-		} catch {
-			// Fall back to SVG
+			dataUrl = await infographic.toDataURL({ type: "png" });
+		} catch (e) {
+			console.debug("[Infographic Plugin] PNG export failed, trying SVG:", e);
 		}
 
 		// Try SVG as fallback
-		if (!imgSrc) {
+		if (!dataUrl) {
 			try {
-				const dataUrl = await infographic.toDataURL({ type: "svg" });
-				if (dataUrl) {
-					imgSrc = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "svg", `${keyBase}|svg`);
-				}
-			} catch {
-				// If all fails, try DOM-based extraction
+				dataUrl = await infographic.toDataURL({ type: "svg" });
+			} catch (e) {
+				console.debug("[Infographic Plugin] SVG export failed, trying DOM extraction:", e);
 			}
 		}
 
 		// DOM-based SVG extraction as last resort
-		if (!imgSrc) {
+		if (!dataUrl) {
 			const svg = tempContainer.querySelector<SVGSVGElement>("svg");
 			if (svg) {
 				ensureSvgNamespace(svg);
 				const serialized = new XMLSerializer().serializeToString(svg);
-				const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
-				imgSrc = await persistSnapshotDataUrl(app, cacheDir, dataUrl, "svg", `${keyBase}|dom|svg`);
+				dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
 			}
 		}
 
 		// Append image directly to target element (like Excalidraw does)
-		if (imgSrc) {
+		if (dataUrl) {
 			const img = targetEl.createEl("img", { cls: "infographic-print-img" });
-			img.setAttribute("src", imgSrc);
+			img.setAttribute("src", dataUrl);
 			img.setAttribute("alt", "Infographic");
+
+			// Try to persist and swap to a vault-backed resource URL for Electron PDF reliability.
+			try {
+				const ext = dataUrl.startsWith("data:image/png") ? "png" : "svg";
+				const persisted = await persistSnapshotDataUrl(app, cacheDir, dataUrl, ext as "png" | "svg", `${keyBase}|${ext}`);
+				img.setAttribute("src", persisted);
+			} catch {
+				// keep data URL if persistence fails
+			}
+		} else {
+			console.warn("[Infographic Plugin] Could not generate image for PDF export");
 		}
 	} catch (e) {
 		console.error("[Infographic Plugin] Failed to render static snapshot for PDF:", e);
