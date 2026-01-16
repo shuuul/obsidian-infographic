@@ -223,6 +223,7 @@ async function setStaticImage(
 	printEl.empty();
 	const img = printEl.createEl("img", { cls: "infographic-print-img" });
 	img.dataset.source = "static";
+	// Keep the data URL as primary src so it works even if persistence fails
 	img.setAttribute("src", src);
 	img.setAttribute("alt", "Infographic");
 	wrapperEl.addClass("infographic-has-print");
@@ -237,7 +238,8 @@ async function setStaticImage(
 				persist.ext,
 				persist.cacheKey
 			);
-			img.setAttribute("src", persisted);
+			// Store persisted path separately; some print pipelines fail to load app:// URLs
+			img.dataset.persistedSrc = persisted;
 		} catch {
 			// keep the original data URL
 		}
@@ -352,6 +354,7 @@ export async function renderStaticSnapshotDirect(
 		// Append image directly to target element (like Excalidraw does)
 		if (dataUrl) {
 			const img = targetEl.createEl("img", { cls: "infographic-print-img" });
+			// Keep data URL primary for maximum compatibility
 			img.setAttribute("src", dataUrl);
 			img.setAttribute("alt", "Infographic");
 
@@ -359,7 +362,7 @@ export async function renderStaticSnapshotDirect(
 			try {
 				const ext = dataUrl.startsWith("data:image/png") ? "png" : "svg";
 				const persisted = await persistSnapshotDataUrl(app, cacheDir, dataUrl, ext, `${keyBase}|${ext}`);
-				img.setAttribute("src", persisted);
+				img.dataset.persistedSrc = persisted;
 			} catch {
 				// keep data URL if persistence fails
 			}
