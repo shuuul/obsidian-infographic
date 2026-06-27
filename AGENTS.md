@@ -158,12 +158,7 @@ For emergency manual releases, use `npm run version [patch|minor|major]` and pus
 
 ### Release Please Token Requirement
 
-The release-please action needs permission to create release PRs. Configure one of the following in the repository Settings:
-
-1. **Recommended**: Create a repository secret named `RELEASE_PLEASE_TOKEN` with a Personal Access Token (classic) that has `repo` scope. The workflow uses this token for release-please and falls back to `GITHUB_TOKEN` otherwise.
-2. **Alternative**: Enable "Allow GitHub Actions to create and approve pull requests" under Settings > Actions > General. This lets the workflow use the built-in `GITHUB_TOKEN`.
-
-Without one of these, the workflow will fail to open or update the release PR.
+The release-please action uses the built-in `GITHUB_TOKEN`, so the repository must allow GitHub Actions to create pull requests. Enable "Allow GitHub Actions to create and approve pull requests" under Settings > Actions > General. Without this, the workflow will fail to open or update the release PR.
 
 ## Gotchas
 
