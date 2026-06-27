@@ -10,10 +10,12 @@ import {SourceCodeModal, ExportModal} from "./ui";
  * Obsidian renders PDF export inside a container with `.print` class on body or as a direct child.
  * This mirrors the detection pattern used by obsidian-excalidraw-plugin.
  */
-function isPrintingMode(): boolean {
-	return Boolean(document.body.querySelectorAll("body > .print").length > 0) ||
-		document.body.classList.contains("print");
+function isPrintingMode(doc: Document): boolean {
+	return Boolean(doc.body.querySelectorAll("body > .print").length > 0) ||
+		doc.body.classList.contains("print");
 }
+
+declare const activeWindow: Window;
 
 const INFOGRAPHIC_TEMPLATE = `{
   "template": "list-row-simple-horizontal-arrow",
@@ -43,8 +45,9 @@ export default class InfographicPlugin extends Plugin {
 		this.registerEventHandlers();
 
 		// Ensure PDF export (print pipeline) uses a static snapshot instead of live rendering.
-		this.registerDomEvent(window, "beforeprint", () => {
-			refreshAllInfographicPrintSnapshots(document, this.app, `${this.manifest.dir}/print-cache`);
+		const activeDoc = activeWindow.document;
+		this.registerDomEvent(activeWindow, "beforeprint", () => {
+			refreshAllInfographicPrintSnapshots(activeDoc, this.app, `${this.manifest.dir}/print-cache`);
 		});
 	}
 
@@ -98,7 +101,7 @@ export default class InfographicPlugin extends Plugin {
 	}
 
 	private isDarkMode(): boolean {
-		return document.body.classList.contains("theme-dark");
+		return activeWindow.document.body.classList.contains("theme-dark");
 	}
 
 	private async processInfographicBlock(
@@ -122,7 +125,8 @@ export default class InfographicPlugin extends Plugin {
 		}
 
 		const cacheDir = `${this.manifest.dir}/print-cache`;
-		const isPrinting = isPrintingMode();
+		const activeDoc = activeWindow.document;
+		const isPrinting = isPrintingMode(activeDoc);
 		const theme = this.settings.theme === "auto" ? (this.isDarkMode() ? "dark" : "light") : this.settings.theme;
 
 		// In PDF export mode, render a static image DIRECTLY to the element.
@@ -165,7 +169,7 @@ export default class InfographicPlugin extends Plugin {
 		renderChild.ensureStarted();
 
 		// Populate print snapshot after the live render has had a chance to paint.
-		requestAnimationFrame(() => refreshInfographicPrintSnapshot(container, this.app, cacheDir));
+		activeWindow.requestAnimationFrame(() => refreshInfographicPrintSnapshot(container, this.app, cacheDir));
 
 		// Force-generate a static snapshot into the print container so that PDF export
 		// always has a ready <img>, even if .print detection fails or happens late.

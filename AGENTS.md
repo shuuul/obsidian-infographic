@@ -158,10 +158,11 @@ Use `npm run version [patch|minor|major]` to bump `package.json`, which `version
 - **PDF export has two paths**: direct `renderStaticSnapshotDirect` when `.print` is detected, plus a hidden `.infographic-print` snapshot in normal mode that is refreshed by `beforeprint` and `ResizeObserver`-driven timers.
 - **Snapshot persistence is best-effort**: `persistSnapshotDataUrl` may fail silently; the data URL remains the primary render source.
 - **AntV `Infographic` lifecycle**: `destroy()` is wrapped in `try/catch` because it may throw if already destroyed.
-- **ResizeObserver target**: Observes `parentElement` if available, otherwise the container itself.
+- **Popout-window compatibility**: Source code uses `activeWindow` (provided by Obsidian) instead of the global `window`/`document` for timers, DOM creation, and dark-mode checks. This keeps the plugin working in Obsidian popout windows where the global window/document may differ from the active pane.
 - **Aspect ratio**: Derived from the rendered SVG `viewBox` or bounding rect; defaults to `4/3` before first render.
 - **Error behavior**: `show-code` (default) renders the source block; `show-error` shows only the error with a "View details" button; `hide` empties the element.
 - **Settings no longer include `maxWidth`/`maxHeight`**: those keys were removed from `InfographicSettings`; the README still mentions them but the code does not use them. Width is driven by container size and aspect ratio.
+- **Dev-only dependency vulnerabilities**: `npm audit` may flag transitive dev-only packages (e.g., from `eslint-plugin-obsidianmd`). These are not shipped in the plugin bundle and can be left as-is; only runtime dependencies bundled into `main.js` affect user security.
 
 ## Agent Guidelines
 

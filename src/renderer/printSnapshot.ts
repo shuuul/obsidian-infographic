@@ -1,6 +1,8 @@
-import type {App} from "obsidian";
+import {type App} from "obsidian";
 import {Infographic, type InfographicOptions} from "@antv/infographic";
 import {persistSnapshotDataUrl} from "./snapshotFileCache";
+
+declare const activeWindow: Window;
 
 interface ParsedInfographicConfig {
 	width?: number;
@@ -82,7 +84,7 @@ export function refreshInfographicPrintSnapshot(wrapperEl: HTMLElement, app?: Ap
  * Refresh all print snapshots in the document.
  * Called on beforeprint event.
  */
-export function refreshAllInfographicPrintSnapshots(root: ParentNode = document, app?: App, cacheDir?: string): void {
+export function refreshAllInfographicPrintSnapshots(root: ParentNode = activeWindow.document, app?: App, cacheDir?: string): void {
 	const wrappers = root.querySelectorAll<HTMLElement>(".infographic-wrapper");
 	wrappers.forEach((wrapper) => refreshInfographicPrintSnapshot(wrapper, app, cacheDir));
 }
@@ -92,9 +94,9 @@ export function refreshAllInfographicPrintSnapshots(root: ParentNode = document,
  */
 async function waitForRender(frames: number = 3): Promise<void> {
 	for (let i = 0; i < frames; i++) {
-		await new Promise((resolve) => requestAnimationFrame(resolve));
+		await new Promise((resolve) => activeWindow.requestAnimationFrame(resolve));
 	}
-	await new Promise((resolve) => setTimeout(resolve, 50));
+	await new Promise((resolve) => activeWindow.setTimeout(resolve, 50));
 }
 
 /**
@@ -111,7 +113,7 @@ export async function renderStaticSnapshotDirect(
 	targetEl: HTMLElement
 ): Promise<void> {
 	// Create off-screen container with clip-path (not visibility:hidden) so browsers render it
-	const tempContainer = document.createElement("div");
+	const tempContainer = activeWindow.document.createElement("div");
 	tempContainer.addClass("infographic-offscreen-render");
 	tempContainer.style.cssText = `
 		position: fixed;
@@ -123,7 +125,7 @@ export async function renderStaticSnapshotDirect(
 		pointer-events: none;
 		z-index: -9999;
 	`;
-	document.body.appendChild(tempContainer);
+	activeWindow.document.body.appendChild(tempContainer);
 
 	let infographic: Infographic | null = null;
 

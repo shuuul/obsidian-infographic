@@ -1,6 +1,8 @@
 import {App, Modal, Notice} from "obsidian";
 import type {Infographic} from "@antv/infographic";
 
+declare const activeWindow: Window;
+
 export class ExportModal extends Modal {
 	private infographic: Infographic;
 	private filename: string;
@@ -56,12 +58,13 @@ export class ExportModal extends Modal {
 	}
 
 	private downloadDataUrl(dataUrl: string, filename: string): void {
-		const link = document.createElement("a");
+		const doc = activeWindow.document;
+		const link = doc.createElement("a");
 		link.href = dataUrl;
 		link.download = filename;
-		document.body.appendChild(link);
+		doc.body.appendChild(link);
 		link.click();
-		document.body.removeChild(link);
+		doc.body.removeChild(link);
 	}
 
 	onClose(): void {
