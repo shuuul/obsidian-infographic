@@ -8,7 +8,7 @@ description: |
   Supports JSON and DSL syntax formats.
 metadata:
   author: shuuul
-  version: "0.1.0"
+  version: "0.1.8"
 ---
 
 # Infographics
@@ -70,22 +70,20 @@ theme
 
 | Document | Description |
 |----------|-------------|
-| [infographcs-creator.md](reference/infographcs-creator.md) | Complete syntax spec, templates, and examples |
-| [prompt.md](reference/prompt.md) | AntV Infographic syntax generation rules |
-| [item-prompt.md](reference/item-prompt.md) | Item component design guidelines |
-| [structure-prompt.md](reference/structure-prompt.md) | Structure component design guidelines |
+| [infographic-creator.md](reference/infographic-creator.md) | Complete syntax spec, templates, and examples |
 
 ## Template Selection Guide
 
 | Category | Templates | Use For |
 |----------|-----------|---------|
 | **Sequences** | `sequence-*` | Processes, steps, timelines |
-| **Lists** | `list-row-*`, `list-column-*`, `list-grid-*` | Bullet points, viewpoints |
-| **Comparison** | `compare-binary-*`, `compare-swot` | Pros/cons, SWOT |
-| **Hierarchy** | `hierarchy-tree-*`, `hierarchy-structure` | Trees, org charts |
+| **Interactions** | `sequence-interaction-*` | Multi-role/system interaction, swim-lanes |
+| **Lists** | `list-row-*`, `list-column-*`, `list-grid-*`, `list-waterfall-*` | Bullet points, viewpoints, masonry |
+| **Comparison** | `compare-binary-*`, `compare-swot`, `compare-quadrant-*` | Pros/cons, SWOT, matrix |
+| **Hierarchy** | `hierarchy-tree-*`, `hierarchy-structure`, `hierarchy-mindmap-*` | Trees, org charts, mind maps |
 | **Charts** | `chart-*` | Data visualization |
 | **Quadrant** | `quadrant-*` | Matrix analysis |
-| **Relations** | `relation-*` | Relationships |
+| **Relations** | `relation-*`, `relation-network-*`, `relation-dagre-*` | Relationships, flow charts, networks |
 
 ## Common Templates
 
@@ -93,13 +91,19 @@ theme
 |----------|-------------|
 | `list-row-simple-horizontal-arrow` | Horizontal steps with arrows |
 | `list-row-horizontal-icon-arrow` | Steps with icons and arrows |
+| `list-waterfall-badge-card` | Masonry-style list card |
 | `sequence-timeline-rounded-rect-node` | Timeline layout |
+| `sequence-interaction-default-badge-card` | Multi-role interaction diagram |
 | `sequence-roadmap-vertical-simple` | Vertical roadmap |
 | `hierarchy-structure` | Organization chart |
+| `hierarchy-mindmap-level-gradient-compact-card` | Mind map with gradient levels |
 | `compare-binary-horizontal-badge-card-arrow` | Pros/cons comparison |
 | `compare-swot` | SWOT analysis |
+| `compare-quadrant-quarter-simple-card` | Quadrant matrix card |
 | `chart-bar-plain-text` | Bar chart |
 | `chart-pie-donut-plain-text` | Donut chart |
+| `relation-network-simple-circle-node` | Network relationship graph |
+| `relation-dagre-flow-tb-simple-circle-node` | Top-down flow diagram |
 
 ## Data Structure
 

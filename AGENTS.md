@@ -1,150 +1,184 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-14
-**Branch:** main
-**Version:** 0.1.8-preview.5
+**Generated:** 2026-06-27
+**Branch:** master
+**Version:** 0.1.8
 
-## OVERVIEW
-Obsidian plugin that renders AntV Infographic visualizations from fenced `infographic` code blocks. Integrates `@antv/infographic` library into Obsidian's markdown preview.
+## Project Overview
 
-## STRUCTURE
+Obsidian plugin that renders [AntV Infographic](https://github.com/antvis/Infographic) visualizations from fenced `infographic` code blocks. It integrates the `@antv/infographic` library into Obsidian's markdown preview, supporting both JSON configuration and AntV's declarative DSL, with live rendering, responsive resizing, toolbar actions (copy/export), and PDF-export compatibility via static snapshots.
+
+## Repo Structure
+
 ```
 ./
-├── src/
-│   ├── main.ts           # Plugin entry point
-│   ├── settings.ts       # Settings tab definition
-│   ├── parser/           # DSL/JSON spec parsing
-│   ├── renderer/         # AntV Infographic rendering
-│   └── ui/               # Modals (Export, Source)
-├── skills/               # Agent skills for OhMyOpenCode
-│   └── obsidian-infographics/
-│       ├── SKILL.md
-│       └── reference/
-│           └── GALLERY.md
-├── main.js               # Bundled output (DO NOT EDIT)
-├── styles.css            # Plugin styles
-├── esbuild.config.mjs    # Build configuration
-├── manifest.json         # Plugin metadata
-├── README.md             # English documentation
-├── README_CN.md          # Chinese documentation
-└── AGENTS.md             # AI agent knowledge base
+├── src/                              # TypeScript source (DO NOT edit main.js directly)
+│   ├── main.ts                       # Plugin entry: lifecycle, commands, code-block processor
+│   ├── settings.ts                   # Settings schema + settings tab UI
+│   ├── parser/
+│   │   ├── InfographicParser.ts      # JSON / DSL validation
+│   │   └── index.ts                  # Parser barrel exports
+│   ├── renderer/
+│   │   ├── InfographicView.ts        # Live AntV rendering + ResizeObserver
+│   │   ├── printSnapshot.ts          # Static snapshot generation for PDF export
+│   │   ├── snapshotFileCache.ts      # Vault file persistence for snapshot data URLs
+│   │   └── index.ts                  # Renderer barrel exports
+│   └── ui/
+│       ├── ExportModal.ts            # PNG/SVG export modal
+│       ├── SourceModal.ts            # Source-code viewer modal
+│       └── index.ts                  # UI barrel exports
+├── skills/obsidian-infographic/      # Agent skill for OhMyOpenCode
+│   ├── SKILL.md                      # Skill definition + quick reference
+│   └── reference/
+│       └── infographic-creator.md    # Full syntax spec, templates, examples
+├── styles.css                        # Plugin styles (toolbar, print, modals, loading)
+├── esbuild.config.mjs                # esbuild bundle config (dev watch + prod build)
+├── eslint.config.mts                 # ESLint flat config (typescript-eslint + obsidianmd)
+├── tsconfig.json                     # TypeScript compiler options
+├── version-bump.mjs                  # Syncs package.json version → manifest.json + versions.json
+├── manifest.json                     # Obsidian plugin metadata
+├── versions.json                     # Obsidian version compatibility map
+├── main.js                           # Generated bundle (DO NOT EDIT)
+├── README.md                         # English user docs
+├── README_CN.md                      # Chinese user docs
+├── LICENSE                           # Apache-2.0
+└── AGENTS.md                         # This file
 ```
 
-## WHERE TO LOOK
-| Task | Location |
-|------|----------|
-| Plugin lifecycle | `src/main.ts` |
-| Add new chart type | `src/renderer/InfographicView.ts` |
-| Parse custom DSL | `src/parser/InfographicParser.ts` |
-| Add settings | `src/settings.ts` + `src/ui/` |
-| Styling | `styles.css` |
-| Agent skill docs | `skills/obsidian-infographics/` |
+## Tech Stack
 
-## CODE MAP
-| Symbol | Type | Location |
-|--------|------|----------|
-| `InfographicPlugin` | class | `src/main.ts:18` |
-| `InfographicRenderChild` | class | `src/renderer/InfographicView.ts` |
-| `InfographicParser` | class | `src/parser/InfographicParser.ts` |
-| `ExportModal` | class | `src/ui/ExportModal.ts` |
-| `SourceModal` | class | `src/ui/SourceModal.ts` |
-| `InfographicSettings` | type | `src/settings.ts` |
+| Layer | Technology | Role |
+|-------|------------|------|
+| Language | TypeScript 5.9 | Strict TS with `strictNullChecks`, `noUncheckedIndexedAccess` |
+| Runtime | Node.js 20.x / 22.x | CI matrix; ES modules (`"type": "module"`) |
+| Plugin host | Obsidian API `^1.13.1` | Markdown code-block processor, modals, settings |
+| Visualization | `@antv/infographic` `^0.2.19` | SVG/canvas infographic rendering |
+| Bundler | esbuild 0.28.1 | Dev watch + production CJS bundle to `main.js` |
+| Lint | typescript-eslint 8.62 + eslint-plugin-obsidianmd 0.1.9 | Type-aware lint for Obsidian plugin rules |
+| Build orchestration | npm scripts (`package.json`) | `dev`, `build`, `lint`, `version` |
 
-## CONVENTIONS
-- **Strict TypeScript**: `strictNullChecks`, `noUncheckedIndexedAccess` enabled
-- **Module resolution**: `baseUrl: "src"` - import from `src/...` directly
-- **Bundle**: esbuild, externalizes `obsidian`, `@codemirror/*`, `electron`
-- **Versioning**: `version-bump.mjs` syncs `package.json` → `manifest.json` → `versions.json`
-- **License**: Apache-2.0
-- **No backward compatibility**: Breaking changes accepted per `CLAUDE.md`
+## Development Commands
 
-## ANTI-PATTERNS (THIS PROJECT)
-- **Never** edit `main.js` directly - always rebuild from `src/`
-- **Never** bypass `InfographicRenderChild` for rendering - use lifecycle hooks
-- **Never** register events without `this.registerEvent()` - causes leaks
-- **Never** put DOM logic in `main.ts` - delegate to `MarkdownRenderChild`
+| Task | Command | Notes |
+|------|---------|-------|
+| Install | `npm install` | Standard npm install |
+| Dev build | `npm run dev` | esbuild watch mode with inline sourcemaps |
+| Production build | `npm run build` | `tsc -noEmit -skipLibCheck` then `esbuild` production bundle |
+| Lint | `npm run lint` | `eslint .` (ignores `main.js`, `node_modules`, generated configs) |
+| Typecheck | `npm run build` | `tsc -noEmit` runs first as part of build |
+| Version bump | `npm run version [patch\|minor\|major]` | Updates `manifest.json` + `versions.json`, stages them |
 
-## COMMANDS
-```bash
-npm run dev       # Watch mode with esbuild
-npm run build     # Type-check + production bundle
-npm run lint      # ESLint + obsidianmd rules
-npm run version   # Bump version, update manifests
+## Architecture
+
+### Module Relationship
+
+```mermaid
+flowchart TD
+    A["src/main.ts<br/>InfographicPlugin"] -->|imports| B["src/settings.ts<br/>InfographicSettingTab"]
+    A -->|imports| C["src/parser/index.ts<br/>parseInfographicSpec"]
+    A -->|imports| D["src/renderer/index.ts<br/>InfographicRenderChild"]
+    A -->|imports| E["src/renderer/printSnapshot.ts<br/>renderStaticSnapshotDirect"]
+    A -->|imports| F["src/ui/index.ts<br/>ExportModal / SourceCodeModal"]
+    D -->|uses| G["src/renderer/snapshotFileCache.ts<br/>persistSnapshotDataUrl"]
+    E -->|uses| G
+    D -->|wraps| H["@antv/infographic<br/>Infographic"]
+    E -->|creates| H
 ```
 
-## RELEASE PROCESS
+### Data Flow: Code Block → Rendered SVG/PNG
 
-### Automated (GitHub Actions)
-
-When you push a tag matching `*` (no `v` prefix), GitHub Actions automatically:
-1. Builds the plugin
-2. Creates and publishes a release with `main.js`, `manifest.json`, `styles.css`
-
-Tag format: `0.x.x` (e.g., `0.1.5`)
-
-**Important:** Before creating a tag, ensure `manifest.json` version matches the tag version.
-
-### Preview / Pre-release Versions
-
-Use **preview versions** for testing in the format: `0.x.x-preview.N` (e.g., `0.1.8-preview.1`).
-
-- **Version fields**: set `package.json` and `manifest.json` to the same preview version.
-- **Tag**: push a matching git tag like `0.1.8-preview.1`.
-- **GitHub Release**: tags containing `-preview.` are published as **Pre-release** by `.github/workflows/release.yml`.
-
-### Manual Release Process
-
-```bash
-# 1. Build the plugin
-npm run build
-
-# 2. Commit changes
-git add -A && git commit -m "Your commit message"
-
-# 3. Push changes (optional - for CI/CD)
-git push origin
-
-# 4. Create and push tag
-git tag -a 0.x.x -m "Release 0.x.x"
-git push origin 0.x.x
-
-# 5. GitHub Actions will create the release automatically
-# OR create manually:
-gh release create 0.x.x --title "0.x.x" --notes "Release notes" main.js manifest.json styles.css
+```mermaid
+flowchart LR
+    A["Markdown preview<br/>```infographic block"] -->|source string| B["src/parser/InfographicParser.ts"]
+    B -->|ParseResult<br/>{content, isJson}| C["src/main.ts<br/>processInfographicBlock"]
+    C -->|PDF mode?| D["src/renderer/printSnapshot.ts<br/>renderStaticSnapshotDirect"]
+    D -->|off-screen Infographic| E["targetEl &lt;img&gt;<br/>data URL / persisted file"]
+    C -->|normal mode| F["src/renderer/InfographicView.ts<br/>InfographicRenderChild"]
+    F -->|live render| G["DOM SVG/canvas"]
+    F -->|toDataURL png/svg| H["print snapshot &lt;img&gt;"]
+    H -->|persist| I["src/renderer/snapshotFileCache.ts<br/>vault print-cache"]
+    F -->|resize| J["ResizeObserver<br/>update width/height"]
 ```
 
-**Version bump:**
-```bash
-# Manual: Edit version in package.json and manifest.json
-# Or use: npm run version [patch|minor|major]
-```
+### Key Responsibilities
 
-**Why this order?**
-- Tag must exist BEFORE GitHub Actions can create release
-- GitHub Actions triggers on tag push event
-- Release is published immediately (not draft)
+| Module | Responsibility |
+|--------|----------------|
+| `src/main.ts` | Plugin lifecycle, code-block processor registration, commands, error handling, orchestrates print vs. normal render paths. |
+| `src/settings.ts` | Settings schema (`autoRender`, `theme`, `errorBehavior`) and Obsidian settings tab UI. |
+| `src/parser/InfographicParser.ts` | Validates source as either valid JSON (if starts with `{`) or passes DSL through as plain text. |
+| `src/renderer/InfographicView.ts` | Live `InfographicRenderChild` wrapper; handles loading, resize, aspect ratio from SVG viewBox, and schedules print snapshots. |
+| `src/renderer/printSnapshot.ts` | Static snapshot generation for PDF export, DOM extraction fallback, and `beforeprint` refresh. |
+| `src/renderer/snapshotFileCache.ts` | Persists data URLs to vault files via `app.vault.adapter`, returning `app.vault.adapter.getResourcePath`. |
+| `src/ui/ExportModal.ts` | Modal to export the current live infographic as PNG or SVG. |
+| `src/ui/SourceModal.ts` | Modal to view (and copy) the original block source, with JSON formatting. |
 
-## FEATURES
-- 🎨 **200+ Built-in Templates** - Process flows, timelines, hierarchies, charts
-- 📝 **Dual Syntax Support** - JSON configuration + AntV declarative DSL
-- 🖼️ **Export Options** - Save as SVG or PNG
-- 🌓 **Theme Support** - Auto-detect or force light/dark mode
-- 📐 **Responsive Design** - Automatic resize handling
-- 🔄 **Live Reload** - Refresh all infographics with a command
-- 🤖 **Agent Skill** - Available in OhMyOpenCode for AI-assisted visualization
+## Coding Conventions
 
-## SETTINGS
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Auto render | Automatically render in preview | `true` |
-| Theme | Auto / Light / Dark | `auto` |
-| Error behavior | show-code / show-error / hide | `show-code` |
-| Max width | Maximum width (px) | `800` |
-| Max height | Maximum height (px) | `600` |
+- **Strict TypeScript**: `strictNullChecks`, `noUncheckedIndexedAccess`, `strictBindCallApply`, `useUnknownInCatchVariables` enabled.
+- **Imports**: Prefer `import` from `obsidian` API and `@antv/infographic`; barrel `index.ts` files group module exports.
+- **Module resolution**: `baseUrl: "src"` in `tsconfig.json`; use relative imports inside `src/` (e.g., `../settings`).
+- **DOM lifecycle**: All rendering delegated to `MarkdownRenderChild` subclasses; never put DOM construction directly in `main.ts`.
+- **Event registration**: Always use `this.registerEvent()` or `this.registerDomEvent()` so Obsidian cleans up on plugin unload.
+- **Error handling**: Use `e instanceof Error ? e.message : String(e)` for unknown errors; catch-and-ignore is acceptable for cleanup paths (commented).
+- **Naming**: PascalCase for classes/types, camelCase for functions/variables, kebab-case for CSS classes.
+- **CSS**: BEM-ish naming with `infographic-` prefix; print styles duplicated under `@media print` and `.print` class for Electron compatibility.
+- **Bundle**: `main.js` is generated by esbuild; externalize `obsidian`, `electron`, and `@codemirror/*`.
 
-## NOTES
-- Toolbar (Copy/Export) always visible on rendered blocks
-- Error behavior configurable: hide / show-error / show-code
-- Dark mode auto-detected via `document.body.classList`
-- ResizeObserver handles chart resizing
-- Agent skill in `skills/obsidian-infographics/` for OhMyOpenCode integration
+## Testing
+
+No automated tests exist in this repository. The project relies on:
+
+- `npm run build` for TypeScript type checking (`tsc -noEmit`).
+- `npm run lint` for static analysis.
+- Manual verification in Obsidian for preview rendering, export, and PDF behavior.
+
+If adding tests, prefer a Node-based test runner compatible with ESM TypeScript (e.g., Vitest) and add a `test` script to `package.json`.
+
+## CI/CD
+
+| Workflow | File | Trigger | Jobs |
+|----------|------|---------|------|
+| Lint / Build | `.github/workflows/lint.yml` | Push and PR to any branch | `npm ci` → `npm run build` → `npm run lint` on Node 20.x and 22.x matrix. |
+| Release | `.github/workflows/release.yml` | Tag push (`*`) | `npm ci` → `npm run build`; creates GitHub release with `main.js`, `manifest.json`, `styles.css`. Tags containing `-preview.` are published as pre-releases. |
+
+### Release Process
+
+1. Ensure `manifest.json` version matches the intended tag.
+2. Run `npm run build`.
+3. Commit changes.
+4. Create and push tag (no `v` prefix): `git tag -a 0.1.9 -m "Release 0.1.9" && git push origin 0.1.9`.
+5. GitHub Actions creates the release automatically.
+
+Use `npm run version [patch|minor|major]` to bump `package.json`, which `version-bump.mjs` syncs into `manifest.json` and `versions.json`.
+
+## Gotchas
+
+- **Never edit `main.js` directly**; it is regenerated by `npm run build`. Edit `src/` only.
+- **PDF export has two paths**: direct `renderStaticSnapshotDirect` when `.print` is detected, plus a hidden `.infographic-print` snapshot in normal mode that is refreshed by `beforeprint` and `ResizeObserver`-driven timers.
+- **Snapshot persistence is best-effort**: `persistSnapshotDataUrl` may fail silently; the data URL remains the primary render source.
+- **AntV `Infographic` lifecycle**: `destroy()` is wrapped in `try/catch` because it may throw if already destroyed.
+- **ResizeObserver target**: Observes `parentElement` if available, otherwise the container itself.
+- **Aspect ratio**: Derived from the rendered SVG `viewBox` or bounding rect; defaults to `4/3` before first render.
+- **Error behavior**: `show-code` (default) renders the source block; `show-error` shows only the error with a "View details" button; `hide` empties the element.
+- **Settings no longer include `maxWidth`/`maxHeight`**: those keys were removed from `InfographicSettings`; the README still mentions them but the code does not use them. Width is driven by container size and aspect ratio.
+
+## Agent Guidelines
+
+### Do
+
+- Rebuild `main.js` with `npm run build` after any source change.
+- Run `npm run lint` and `npm run build` before committing.
+- Use `InfographicRenderChild` for any new live-render behavior.
+- Register events with `this.registerEvent()` / `this.registerDomEvent()` in `main.ts`.
+- Persist snapshot data URLs via `snapshotFileCache.ts` if adding new export paths.
+- Update `manifest.json` and `versions.json` via `version-bump.mjs` (or `npm run version`) when changing versions.
+- Update `skills/obsidian-infographic/reference/infographic-creator.md` if new AntV templates are exposed.
+
+### Don't
+
+- Edit `main.js` by hand.
+- Bypass `InfographicRenderChild` to render directly into the preview DOM from `main.ts`.
+- Leave events unregistered; this causes memory leaks.
+- Add new dependencies without confirming `npm run build` and `npm run lint` still pass.
+- Treat README/AGENTS as code truth when they contradict source; the source is the source of truth (e.g., `maxWidth`/`maxHeight` settings are not in code).

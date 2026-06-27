@@ -13,7 +13,7 @@ AntV Infographic Syntax is a mermaid-like DSL for describing infographic renderi
 ### Syntax Components
 
 1. **template**: Use template to express text information structure
-2. **data**: The infographic data containing title, desc, items, etc.
+2. **data**: The infographic data containing title, desc, and the primary data field matching the template
 3. **theme**: Theme contains palette, font, and other styling options
 
 ### Syntax Rules
@@ -22,15 +22,174 @@ AntV Infographic Syntax is a mermaid-like DSL for describing infographic renderi
 - Use blocks to describe data/theme with two-space indentation
 - Key-value pairs: `"key value"`
 - Arrays: `-` items
-- Icon value: direct icon name (e.g., `mdi/chart-line`)
+- Icon value: direct icon name (e.g., `mdi/chart-line`) or semantic keywords (e.g., `rocket launch`)
 - `data` can include: `relations`, `illus`, `attributes`
-- `data.items` fields: `id`, `label`, `value`, `desc`, `icon`, `illus`, `group`, `children`
-- `data.relations`: `from`, `to`, `label`, `direction`, `showArrow`, `arrowType`
 - Mermaid-style `A -> B` supported for relation graphs
+- `data` should contain only **one** primary data field that matches the template
+
+### Primary Data Field Selection
+
+Use the data field that matches the template category. Only fall back to `items` when the structure is ambiguous.
+
+| Template | Primary data field | Notes |
+|----------|-------------------|-------|
+| `list-*` | `lists` | Array of items with `label`, `desc`, `value`, `icon`, `children` |
+| `sequence-*` (non-interaction) | `sequences` | Steps with `label`, `desc`, `icon`, optional `order asc\|desc` |
+| `sequence-interaction-*` | `sequences` + `relations` | Swim-lanes; each lane has `label` + `children` nodes; use `relations` between node `id`s |
+| `compare-binary-*` / `compare-hierarchy-left-right-*` | `compares` | Exactly two root nodes, each with `children` |
+| `compare-swot` | `compares` | Multiple root nodes with optional `children` |
+| `compare-quadrant-*` | `compares` | Exactly four quadrant root nodes |
+| `hierarchy-structure` | `items` | Top-to-bottom hierarchy, up to 3 levels |
+| `hierarchy-tree-*` / `hierarchy-mindmap-*` | `root` | Single root with recursive `children` |
+| `relation-*` | `nodes` + `relations` | Nodes with `id`/`label`; relations via `from -> to` or `relations` array |
+| `chart-*` | `values` | Data points with `label` and `value` |
+
+### Data Field Examples
+
+**List templates** (`list-*`):
+```plain
+infographic list-row-horizontal-icon-arrow
+data
+  title Feature List
+  lists
+    - label Fast
+      icon mdi/flash
+    - label Secure
+      icon mdi/shield-check
+```
+
+**Sequence templates** (`sequence-*`):
+```plain
+infographic sequence-ascending-steps
+data
+  title Release Process
+  sequences
+    - label Requirement
+      icon mdi/clipboard-check
+    - label Development
+      icon mdi/code-tags
+    - label Release
+      icon mdi/rocket
+  order asc
+```
+
+**Interaction templates** (`sequence-interaction-*`):
+```plain
+infographic sequence-interaction-default-badge-card
+data
+  title Login Flow
+  sequences
+    - label User
+      icon mdi/account
+      children
+        - label Initiate Login
+          id user-login
+          step 0
+          icon mdi/login
+        - label Receive Result
+          id user-result
+          step 2
+          icon mdi/inbox-check
+    - label Server
+      icon mdi/server
+      children
+        - label Verify Credentials
+          id server-verify
+          step 1
+          icon mdi/shield-check
+        - label Return Result
+          id server-return
+          step 2
+          icon mdi/send
+  relations
+    user-login - submit credentials -> server-verify
+    server-verify - generate result -> server-return
+    server-return - return result -> user-result
+```
+
+**Comparison templates** (`compare-binary-*`):
+```plain
+infographic compare-binary-horizontal-simple-fold
+data
+  title Price Comparison
+  compares
+    - label Original Price
+      icon mdi/tag
+      children
+        - label Original
+          value 500
+          icon mdi/tag
+    - label Actual Payment
+      icon mdi/wallet
+      children
+        - label Actual
+          value 450
+          icon mdi/check-bold
+```
+
+**SWOT template** (`compare-swot`):
+```plain
+infographic compare-swot
+data
+  title Product SWOT
+  compares
+    - label Strengths
+      icon mdi/trophy
+      children
+        - label High brand awareness
+          icon mdi/star
+    - label Weaknesses
+      icon mdi/alert-circle
+      children
+        - label High cost pressure
+          icon mdi/wallet
+```
+
+**Quadrant templates** (`compare-quadrant-*`):
+```plain
+infographic compare-quadrant-quarter-simple-card
+data
+  title Task Priority
+  compares
+    - label High Value Low Cost
+    - label High Value High Cost
+    - label Low Value Low Cost
+    - label Low Value High Cost
+```
+
+**Hierarchy templates** (`hierarchy-tree-*` / `hierarchy-mindmap-*`):
+```plain
+infographic hierarchy-tree-curved-line-rounded-rect-node
+data
+  title Org Chart
+  root
+    label Company
+    children
+      - label Product
+      - label Engineering
+      - label Operations
+```
+
+**Chart templates** (`chart-*`):
+```plain
+infographic chart-line-plain-text
+data
+  title Model Accuracy
+  desc Week 4 saw the biggest improvement
+  values
+    - label Week1
+      value 86.5
+    - label Week2
+      value 87.3
+    - label Week3
+      value 89.1
+    - label Week4
+      value 91.2
+```
 
 ### Comparison Templates
 
-For templates starting with `compare-`, construct exactly two root nodes and place comparison items as children.
+For templates starting with `compare-binary-*`, construct exactly two root nodes and place comparison items as children.
 
 ### Hierarchy Templates
 
@@ -151,6 +310,11 @@ interface RelationDatum extends BaseDatum {
 - sequence-timeline-simple
 - sequence-timeline-rounded-rect-node
 - sequence-timeline-simple-illus
+- sequence-interaction-default-badge-card
+- sequence-interaction-default-animated-badge-card
+- sequence-interaction-default-compact-card
+- sequence-interaction-default-capsule-item
+- sequence-interaction-default-rounded-rect-node
 
 ### Comparison
 - compare-binary-horizontal-simple-fold
@@ -158,6 +322,8 @@ interface RelationDatum extends BaseDatum {
 - compare-swot
 - compare-binary-horizontal-badge-card-arrow
 - compare-binary-horizontal-underline-text-vs
+- compare-quadrant-quarter-simple-card
+- compare-quadrant-quarter-circular
 
 ### Quadrant
 - quadrant-quarter-simple-card
@@ -171,12 +337,15 @@ interface RelationDatum extends BaseDatum {
 - relation-dagre-flow-tb-animated-simple-circle-node
 - relation-dagre-flow-tb-badge-card
 - relation-dagre-flow-tb-animated-badge-card
+- relation-network-simple-circle-node
 
 ### Hierarchy
 - hierarchy-tree-tech-style-capsule-item
 - hierarchy-tree-curved-line-rounded-rect-node
 - hierarchy-tree-tech-style-badge-card
 - hierarchy-structure
+- hierarchy-mindmap-branch-gradient-capsule-item
+- hierarchy-mindmap-level-gradient-compact-card
 
 ### Charts
 - chart-column-simple
@@ -198,6 +367,8 @@ interface RelationDatum extends BaseDatum {
 - list-column-done-list
 - list-column-vertical-icon-arrow
 - list-column-simple-vertical-arrow
+- list-waterfall-badge-card
+- list-waterfall-compact-card
 - list-zigzag-down-compact-card
 - list-zigzag-down-simple
 - list-zigzag-up-compact-card
@@ -213,13 +384,14 @@ interface RelationDatum extends BaseDatum {
 | **Roadmaps** | `sequence-roadmap-vertical-*` | Milestone roadmaps |
 | **Zigzags** | `sequence-zigzag-*` | Zigzag steps |
 | **Pyramids** | `sequence-pyramid-simple` | Pyramid diagrams |
-| **Lists** | `list-row-*`, `list-column-*`, `list-grid-*` | Viewpoints, bullet points |
-| **Comparison** | `compare-binary-*` | Pros/cons analysis |
+| **Lists** | `list-row-*`, `list-column-*`, `list-grid-*`, `list-waterfall-*` | Viewpoints, bullet points, masonry |
+| **Comparison** | `compare-binary-*`, `compare-quadrant-*` | Pros/cons analysis, matrix |
 | **SWOT** | `compare-swot` | SWOT analysis |
-| **Hierarchy** | `hierarchy-tree-*`, `hierarchy-structure` | Tree diagrams, org charts |
+| **Hierarchy** | `hierarchy-tree-*`, `hierarchy-structure`, `hierarchy-mindmap-*` | Tree diagrams, org charts, mind maps |
 | **Charts** | `chart-*` | Data visualization |
 | **Quadrant** | `quadrant-*` | Matrix analysis |
-| **Relations** | `relation-*`, `relation-dagre-*` | Relationship display |
+| **Relations** | `relation-*`, `relation-dagre-*`, `relation-network-*` | Relationship display, flow charts, networks |
+| **Interactions** | `sequence-interaction-*` | Multi-role/system interaction |
 | **Word Cloud** | `chart-wordcloud` | Word clouds |
 
 ## Examples
