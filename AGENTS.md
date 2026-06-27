@@ -140,17 +140,21 @@ If adding tests, prefer a Node-based test runner compatible with ESM TypeScript 
 | Workflow | File | Trigger | Jobs |
 |----------|------|---------|------|
 | Lint / Build | `.github/workflows/lint.yml` | Push and PR to any branch | `npm ci` → `npm run build` → `npm run lint` on Node 20.x and 22.x matrix. |
-| Release | `.github/workflows/release.yml` | Tag push (`*`) | `npm ci` → `npm run build`; creates GitHub release with `main.js`, `manifest.json`, `styles.css`. Tags containing `-preview.` are published as pre-releases. |
+| Release Please | `.github/workflows/release-please.yml` | Push to `master` | Creates/updates release PR; on merge creates tag/release; builds and uploads `main.js`, `manifest.json`, `styles.css`. |
 
 ### Release Process
 
-1. Ensure `manifest.json` version matches the intended tag.
-2. Run `npm run build`.
-3. Commit changes.
-4. Create and push tag (no `v` prefix): `git tag -a 0.1.9 -m "Release 0.1.9" && git push origin 0.1.9`.
-5. GitHub Actions creates the release automatically.
+Releases are fully automated via [release-please](https://github.com/googleapis/release-please-action) using [Conventional Commits](https://www.conventionalcommits.org/).
 
-Use `npm run version [patch|minor|major]` to bump `package.json`, which `version-bump.mjs` syncs into `manifest.json` and `versions.json`.
+1. Merge feature/fix/perf commits to `master` using Conventional Commits (`feat`, `fix`, `perf` trigger releases).
+2. The `Release Please` workflow opens/updates a release PR with `CHANGELOG.md`, `package.json`, `package-lock.json`, `manifest.json`, and `.release-please-manifest.json` bumps.
+3. A workflow job on the release PR branch runs `version-bump.mjs` to keep `manifest.json` and `versions.json` in sync.
+4. Merge the release PR. release-please creates the tag (no `v` prefix) and GitHub release with auto-generated notes from commit messages.
+5. The same workflow builds the plugin, attests provenance, and uploads `main.js`, `manifest.json`, `styles.css` to the release.
+
+To force a specific version, add `Release-As: x.y.z` to the footer of a Conventional Commit on `master` before the release PR is created. Do not manually create tags or run `npm run version` for automated releases; the pipeline owns versioning.
+
+For emergency manual releases, use `npm run version [patch|minor|major]` and push a tag, but prefer the automated flow.
 
 ## Gotchas
 
@@ -173,7 +177,7 @@ Use `npm run version [patch|minor|major]` to bump `package.json`, which `version
 - Use `InfographicRenderChild` for any new live-render behavior.
 - Register events with `this.registerEvent()` / `this.registerDomEvent()` in `main.ts`.
 - Persist snapshot data URLs via `snapshotFileCache.ts` if adding new export paths.
-- Update `manifest.json` and `versions.json` via `version-bump.mjs` (or `npm run version`) when changing versions.
+- Let the release-please pipeline manage `package.json`, `manifest.json`, and `versions.json`; do not manually bump versions for routine releases.
 - Update `skills/obsidian-infographic/reference/infographic-creator.md` if new AntV templates are exposed.
 
 ### Don't
