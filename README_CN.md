@@ -27,6 +27,14 @@
 
 ## 📦 安装
 
+### 🔌 通过 Obsidian 官方社区插件安装（推荐）
+
+你现在可以直接从 Obsidian 官方社区插件商店搜索并安装该插件，无需使用 BRAT：
+
+1. 打开 Obsidian 的 **设置** → **社区插件**。
+2. 点击 **浏览** 并搜索 `Infographic`（或者访问 [社区插件页面](https://community.obsidian.md/plugins/infographic)）。
+3. 点击 **安装**，然后 **启用**。
+
 ### 🧪 通过 BRAT 安装（测试版）
 
 使用 [BRAT](https://github.com/TfTHacker/obsidian42-brat) 安装测试版/开发版：
@@ -40,15 +48,6 @@
 4. BRAT 将下载并保持插件更新
 5. 从社区插件中启用 **Infographic**
 
-### 手动安装
-
-1. 从 [GitHub Releases](https://github.com/shuuul/obsidian-infographic/releases) 下载最新版本：
-   - `main.js`
-   - `manifest.json`
-   - `styles.css`
-2. 创建文件夹：`Vault/.obsidian/plugins/obsidian-infographic/`
-3. 将下载的文件放入文件夹
-4. 重新加载 Obsidian 并启用插件
 
 ## 🚀 使用方法
 
@@ -263,8 +262,6 @@ theme light
 | **自动渲染** | 在预览模式中自动渲染 | `true` |
 | **主题** | 自动 / 亮色 / 暗色 | `auto` |
 | **错误行为** | show-code / show-error / hide | `show-code` |
-| **最大宽度** | 最大宽度 (px) | `800` |
-| **最大高度** | 最大高度 (px) | `600` |
 
 ### 工具栏操作
 
@@ -280,10 +277,10 @@ theme light
 ### 技能位置
 
 ```
-skills/obsidian-infographics/
+skills/obsidian-infographic/
 ├── SKILL.md              # 技能定义和使用指南
 └── reference/
-    └── GALLERY.md        # 完整模板目录和示例
+    └── infographic-creator.md  # 完整语法规范、模板和示例
 ```
 
 ### 在 Agent 中的使用
@@ -315,7 +312,7 @@ skills/obsidian-infographics/
 | **象限** | quadrant-simple, quadrant-quarter |
 | **关系** | relation-circle, relation-dagre |
 
-查看[模板画廊](skills/obsidian-infographics/reference/GALLERY.md)获取完整示例。
+查看[模板参考](skills/obsidian-infographic/reference/infographic-creator.md)获取完整示例。
 
 ## 🛠️ 开发
 

@@ -27,9 +27,17 @@ Render [AntV Infographic](https://github.com/antvis/Infographic) visualizations 
 
 ## 📦 Installation
 
+### 🔌 Install via Obsidian Community Plugins (Recommended)
+
+You can install this plugin directly from the official Obsidian Community Plugins store:
+
+1. Open Obsidian **Settings** → **Community plugins**.
+2. Click **Browse** and search for `Infographic` (or visit the [Community Plugin Page](https://community.obsidian.md/plugins/infographic)).
+3. Click **Install**, then **Enable**.
+
 ### 🧪 Install via BRAT (Beta)
 
-For beta/development versions, install using [BRAT](https://github.com/TfTHacker/obsidian42-brat):
+For testing beta or development versions:
 
 1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from Community Plugins
 2. Go to **Settings** → **BRAT** → **Add Beta Plugin**
@@ -40,15 +48,6 @@ For beta/development versions, install using [BRAT](https://github.com/TfTHacker
 4. BRAT will download and keep the plugin updated
 5. Enable **Infographic** from Community Plugins
 
-### Manual Installation
-
-1. Download the latest release from [GitHub Releases](https://github.com/shuuul/obsidian-infographic/releases):
-   - `main.js`
-   - `manifest.json`
-   - `styles.css`
-2. Create folder: `Vault/.obsidian/plugins/obsidian-infographic/`
-3. Place the downloaded files in the folder
-4. Reload Obsidian and enable the plugin
 
 ## 🚀 Usage
 
@@ -264,8 +263,6 @@ Access settings via **Settings** → **Community plugins** → **Infographic**.
 | **Auto render** | Automatically render in preview mode | `true` |
 | **Theme** | Auto / Light / Dark | `auto` |
 | **Error behavior** | show-code / show-error / hide | `show-code` |
-| **Max width** | Maximum width (px) | `800` |
-| **Max height** | Maximum height (px) | `600` |
 
 ### Toolbar Actions
 
@@ -281,10 +278,10 @@ This plugin is also available as an **Agent Skill** for creating AntV Infographi
 ### Skill Location
 
 ```
-skills/obsidian-infographics/
+skills/obsidian-infographic/
 ├── SKILL.md              # Skill definition and usage guide
 └── reference/
-    └── GALLERY.md        # Complete template catalog with examples
+    └── infographic-creator.md  # Complete syntax spec, templates, and examples
 ```
 
 ### Usage in Agents
@@ -315,7 +312,7 @@ data
 | **Quadrant**   | quadrant-simple, quadrant-quarter                                                                  |
 | **Relations**  | relation-circle, relation-dagre                                                                    |
 
-See [Template Gallery](skills/obsidian-infographics/reference/GALLERY.md) for complete examples.
+See [Template Reference](skills/obsidian-infographic/reference/infographic-creator.md) for complete examples.
 
 ## 🛠️ Development
 
