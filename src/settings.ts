@@ -1,4 +1,4 @@
-import {App, PluginSettingTab, Setting} from "obsidian";
+import {App, PluginSettingTab, SettingDefinitionItem} from "obsidian";
 import type InfographicPlugin from "./main";
 
 export type ThemeSetting = "auto" | "light" | "dark";
@@ -24,46 +24,39 @@ export class InfographicSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName("Auto render")
-			.setDesc("Automatically render infographic blocks in preview mode")
-			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings.autoRender)
-				.onChange(async (value) => {
-					this.plugin.settings.autoRender = value;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName("Theme")
-			.setDesc("Color theme for infographics")
-			.addDropdown(dropdown => dropdown
-				.addOption("auto", "Auto (follow Obsidian)")
-				.addOption("light", "Light")
-				.addOption("dark", "Dark")
-				.setValue(this.plugin.settings.theme)
-				.onChange(async (value) => {
-					this.plugin.settings.theme = value as ThemeSetting;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName("Error behavior")
-			.setDesc("What to display when an infographic fails to render")
-			.addDropdown(dropdown => dropdown
-				.addOption("show-code", "Show source code")
-				.addOption("show-error", "Show error message only")
-				.addOption("hide", "Hide block entirely")
-				.setValue(this.plugin.settings.errorBehavior)
-				.onChange(async (value) => {
-					this.plugin.settings.errorBehavior = value as ErrorBehavior;
-					await this.plugin.saveSettings();
-				}));
-
+	/**
+	 * Declarative settings (Obsidian 1.13+): renders the settings UI and makes
+	 * settings searchable in the settings search. Values are read from /
+	 * persisted to this.plugin.settings by the framework via getControlValue /
+	 * setControlValue.
+	 */
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: "Auto render",
+				desc: "Automatically render infographic blocks in preview mode",
+				control: {key: "autoRender", type: "toggle", defaultValue: DEFAULT_SETTINGS.autoRender},
+			},
+			{
+				name: "Theme",
+				desc: "Color theme for infographics",
+				control: {
+					key: "theme",
+					type: "dropdown",
+					defaultValue: DEFAULT_SETTINGS.theme,
+					options: {auto: "Auto (follow Obsidian)", light: "Light", dark: "Dark"},
+				},
+			},
+			{
+				name: "Error behavior",
+				desc: "What to display when an infographic fails to render",
+				control: {
+					key: "errorBehavior",
+					type: "dropdown",
+					defaultValue: DEFAULT_SETTINGS.errorBehavior,
+					options: {"show-code": "Show source code", "show-error": "Show error message only", hide: "Hide block entirely"},
+				},
+			},
+		];
 	}
 }
