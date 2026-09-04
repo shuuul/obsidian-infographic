@@ -1,6 +1,8 @@
 import esbuild from "esbuild";
 import process from "process";
 import { builtinModules } from 'node:module';
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 
 const banner =
 `/*
@@ -10,6 +12,43 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
+
+/**
+ * Optional dev deploy: point OBSIDIAN_VAULT at a vault (env var or .env.local,
+ * which is gitignored) and every successful build copies the plugin artifacts
+ * into <vault>/.obsidian/plugins/infographic. Same pattern as obsidian-pivi.
+ */
+function resolveVaultPath() {
+	let vault = process.env.OBSIDIAN_VAULT;
+	if (!vault && existsSync(".env.local")) {
+		for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
+			const match = line.match(/^([^#=]+?)\s*=\s*(.*)$/);
+			if (match && match[1].trim() === "OBSIDIAN_VAULT") {
+				vault = match[2].trim().replace(/^["']|["']$/g, "");
+			}
+		}
+	}
+	return vault && existsSync(vault) ? vault : null;
+}
+
+const copyToObsidian = {
+	name: "copy-to-obsidian",
+	setup(build) {
+		build.onEnd((result) => {
+			if (result.errors.length > 0) return;
+			const vault = resolveVaultPath();
+			if (!vault) return;
+			const pluginDir = path.join(vault, ".obsidian", "plugins", "infographic");
+			mkdirSync(pluginDir, { recursive: true });
+			for (const file of ["main.js", "manifest.json", "styles.css"]) {
+				if (existsSync(file)) {
+					copyFileSync(file, path.join(pluginDir, file));
+					console.log(`Copied ${file} to Obsidian plugin folder (${vault})`);
+				}
+			}
+		});
+	},
+};
 
 const context = await esbuild.context({
 	banner: {
@@ -39,6 +78,7 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	minify: prod,
+	plugins: [copyToObsidian],
 });
 
 if (prod) {
