@@ -20,10 +20,47 @@ function isPrintingMode(doc: Document): boolean {
  * any other fence parameters.
  */
 function setFenceWidth(fence: string, width: number): string {
-	const match = fence.match(/^(`{3,})\s*infographic\b(.*)$/);
+	const match = fence.match(/^(`{3,})(\s*)infographic\b(.*)$/);
 	if (!match) return fence;
-	const rest = (match[2] ?? "").replace(/\s+width\s*=\s*\d+/i, "").trim();
-	return `${match[1]} infographic${rest ? ` ${rest}` : ""} width=${width}`;
+	const sep = match[2] ?? " ";
+	const rest = (match[3] ?? "").replace(/\s+width\s*=\s*\d+/i, "").trim();
+	return `${match[1]}${sep}infographic${rest ? ` ${rest}` : ""} width=${width}`;
+}
+
+/**
+ * Set or remove the `align=center|left` parameter on an ```infographic fence
+ * line, preserving every other parameter. `null` removes the parameter so the
+ * plugin default applies again.
+ */
+function setFenceAlign(fence: string, align: "center" | "left" | null): string {
+	const match = fence.match(/^(`{3,})(\s*)infographic\b(.*)$/);
+	if (!match) return fence;
+	const sep = match[2] ?? " ";
+	const rest = (match[3] ?? "").replace(/\s+align\s*=\s*(center|left)\b/i, "").trim();
+	if (!align) return `${match[1]}${sep}infographic${rest ? ` ${rest}` : ""}`;
+	return `${match[1]}${sep}infographic${rest ? ` ${rest}` : ""} align=${align}`;
+}
+
+/**
+ * Read the `align=center|left` parameter from a fence line.
+ * Returns null when absent (the plugin default applies).
+ */
+function getFenceAlign(fence: string): "center" | "left" | null {
+	const match = fence.match(/\balign\s*=\s*(center|left)\b/);
+	return match ? (match[1] as "center" | "left") : null;
+}
+
+/** True when the line opens an infographic code fence. */
+function isInfographicFence(line: string): boolean {
+	return /^\s*`{3,}\s*infographic\b/.test(line);
+}
+
+/** Parse the `width=N` fence parameter. Returns null when absent or too small. */
+function parseWidthParam(fence: string): number | null {
+	const match = fence.match(/\bwidth\s*=\s*(\d+)\b/i);
+	if (!match) return null;
+	const width = Number(match[1]);
+	return Number.isFinite(width) && width >= 200 ? width : null;
 }
 
 /**
@@ -49,6 +86,36 @@ function findUniqueSectionStart(editor: Editor, section: string[]): number | nul
 		if (ok) {
 			matches++;
 			found = line;
+		}
+	}
+	return matches === 1 ? found : null;
+}
+
+/**
+ * Locate a code block in the editor by matching its fence line against the
+ * block's rendered source. Returns the fence line number and text only when
+ * exactly one match exists. Used as the live-preview fallback where
+ * ctx.getSectionInfo is unavailable.
+ */
+function findUniqueBlockFence(editor: Editor, source: string): {line: number, fence: string} | null {
+	const contentLines = source.split("\n");
+	const last = contentLines.length - 1;
+	let found: {line: number, fence: string} | null = null;
+	let matches = 0;
+	for (let line = 0; line + 1 + last <= editor.lastLine(); line++) {
+		const fence = editor.getLine(line);
+		if (!/^\s*`{3,}\s*infographic\b/.test(fence)) continue;
+		let ok = true;
+		for (let offset = 0; offset <= last; offset++) {
+			const expected = contentLines[offset];
+			if (expected !== undefined && editor.getLine(line + 1 + offset) !== expected) {
+				ok = false;
+				break;
+			}
+		}
+		if (ok) {
+			matches++;
+			if (found === null) found = {line, fence};
 		}
 	}
 	return matches === 1 ? found : null;
@@ -189,16 +256,21 @@ export default class InfographicPlugin extends Plugin {
 		// Normal (non-PDF) mode: create wrapper with live renderer
 		const container = el.createDiv({cls: "infographic-wrapper"});
 
-		const fenceWidth = this.parseFenceWidth(ctx, el);
+		const fence = this.resolveFenceText(ctx, el, source);
+		const fenceWidth = fence ? parseWidthParam(fence) : null;
 		if (fenceWidth !== null) {
-			container.style.width = `${fenceWidth}px`;
+			const available = el.clientWidth || fenceWidth;
+			container.style.width = `${Math.min(fenceWidth, available)}px`;
 			container.addClass("infographic-has-width");
 		}
-
-		const renderContainer = container.createDiv({cls: "infographic-render"});
+		const fenceAlign = fence ? getFenceAlign(fence) : null;
+		let centered = fenceAlign !== null ? fenceAlign === "center" : this.settings.centerByDefault;
+		container.toggleClass("infographic-centered", centered);
 		// Print-only fallback snapshot container (populated with a static <img>).
 		// Created but not stored - refreshInfographicPrintSnapshot queries for it.
 		container.createDiv({cls: "infographic-print"});
+
+		const renderContainer = container.createDiv({cls: "infographic-render"});
 
 		const renderChild = new InfographicRenderChild(renderContainer, {
 			app: this.app,
@@ -209,7 +281,7 @@ export default class InfographicPlugin extends Plugin {
 			isDarkMode: this.isDarkMode(),
 			isPrinting: false,
 			explicitWidth: fenceWidth ?? undefined,
-			onWidthCommit: (width: number) => this.persistBlockWidth(ctx, el, width),
+			onWidthCommit: (width: number) => this.persistBlockWidth(ctx, el, source, width),
 		});
 		ctx.addChild(renderChild);
 		// Ensure rendering even in pipelines that don't call MarkdownRenderChild.onload (e.g. PDF export).
@@ -232,9 +304,28 @@ export default class InfographicPlugin extends Plugin {
 			);
 		}
 
-		// Always show toolbar with Copy and Export buttons (hidden in print via CSS)
+		// Always show toolbar with Center, Copy and Export buttons (hidden in print via CSS)
 		const toolbar = container.createDiv({cls: "infographic-toolbar"});
-		
+
+		const centerBtn = toolbar.createEl("button", {
+			text: "Center",
+			cls: "infographic-toolbar-btn infographic-center-btn",
+		});
+		centerBtn.setAttribute("aria-pressed", String(centered));
+		centerBtn.toggleClass("infographic-center-btn-active", centered);
+		centerBtn.addEventListener("click", () => {
+			centered = !centered;
+			container.toggleClass("infographic-centered", centered);
+			centerBtn.toggleClass("infographic-center-btn-active", centered);
+			centerBtn.setAttribute("aria-pressed", String(centered));
+			// Persist an explicit align so the block keeps its state even when
+			// it differs from the centerByDefault setting.
+			const align: "center" | "left" | null = centered
+				? "center"
+				: (this.settings.centerByDefault ? "left" : null);
+			this.persistFenceUpdate(ctx, el, source, (fence) => setFenceAlign(fence, align));
+		});
+
 		const copyBtn = toolbar.createEl("button", {
 			text: "Copy",
 			cls: "infographic-toolbar-btn",
@@ -294,45 +385,68 @@ export default class InfographicPlugin extends Plugin {
 	}
 
 	/**
-	 * Read a fence-level width override (```infographic width=N) from the
-	 * section's first line. Returns null when absent or out of range.
+	 * Resolve the block's fence line text. ctx.getSectionInfo is preferred,
+	 * but in live preview it may describe an unrelated section, so anything
+	 * that is not an infographic fence falls back to locating the block in
+	 * the editor by its content.
 	 */
-	private parseFenceWidth(ctx: MarkdownPostProcessorContext, el: HTMLElement): number | null {
+	private resolveFenceText(ctx: MarkdownPostProcessorContext, el: HTMLElement, source: string): string | null {
 		const info = ctx.getSectionInfo(el);
-		const fence = info?.text.split("\n")[0];
-		if (!fence) return null;
-		const match = fence.match(/\bwidth\s*=\s*(\d+)\b/i);
-		if (!match) return null;
-		const width = Number(match[1]);
-		if (!Number.isFinite(width) || width < 200) return null;
-		const available = el.clientWidth || width;
-		return Math.min(width, available);
+		const sectionFence = info?.text.split("\n")[0];
+		if (sectionFence && isInfographicFence(sectionFence)) return sectionFence;
+
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!view || view.getMode() !== "source") return null;
+		if (!view.file || view.file.path !== ctx.sourcePath.split("#")[0]) return null;
+		const located = findUniqueBlockFence(view.editor, source);
+		return located?.fence ?? null;
 	}
 
 	/**
-	 * Best-effort persistence of a drag-resized width: rewrite the block's
-	 * fence line in the live editor. Skipped in reading mode, in hover
-	 * previews of other files, and when the section cannot be located
+	 * Best-effort persistence of a fence edit (width / align): rewrite the
+	 * block's fence line in the live editor. Skipped in reading mode, in
+	 * hover previews of other files, and when the section cannot be located
 	 * unambiguously, so user content is never edited ambiguously.
 	 */
-	private persistBlockWidth(ctx: MarkdownPostProcessorContext, el: HTMLElement, width: number): void {
+	private persistFenceUpdate(ctx: MarkdownPostProcessorContext, el: HTMLElement, source: string, update: (fence: string) => string): void {
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!view || view.getMode() !== "source") return;
 		const filePath = ctx.sourcePath.split("#")[0];
 		if (!view.file || view.file.path !== filePath) return;
+		const editor = view.editor;
+
+		// Preferred: the section information captured while rendering.
+		// CAVEAT: in live preview this may describe an unrelated section
+		// (e.g. the surrounding heading), so only trust it when it actually
+		// is an infographic fence.
 		const info = ctx.getSectionInfo(el);
-		if (!info) return;
-		const fence = info.text.split("\n")[0];
-		if (!fence) return;
-		const updatedFence = setFenceWidth(fence, width);
-		if (updatedFence === fence) return;
-		// Prefer the rendered-at line position, fall back to a unique text
-		// match in case earlier edits shifted the section.
-		const line = view.editor.getLine(info.lineStart) === fence
-			? info.lineStart
-			: findUniqueSectionStart(view.editor, info.text.split("\n"));
-		if (line === null) return;
-		view.editor.replaceRange(updatedFence, {line, ch: 0}, {line, ch: fence.length});
+		if (info) {
+			const fence = info.text.split("\n")[0];
+			if (fence && isInfographicFence(fence)) {
+				const updatedFence = update(fence);
+				if (updatedFence === fence) return;
+				const line = editor.getLine(info.lineStart) === fence
+					? info.lineStart
+					: findUniqueSectionStart(editor, info.text.split("\n"));
+				if (line !== null) {
+					editor.replaceRange(updatedFence, {line, ch: 0}, {line, ch: fence.length});
+					return;
+				}
+			}
+			// Stale or unrelated section info: fall through to content matching.
+		}
+
+		// Live preview fallback: ctx.getSectionInfo is unavailable inside
+		// CodeMirror widgets, so locate the block by its fence + content.
+		const located = findUniqueBlockFence(editor, source);
+		if (!located) return;
+		const updatedFence = update(located.fence);
+		if (updatedFence === located.fence) return;
+		editor.replaceRange(updatedFence, {line: located.line, ch: 0}, {line: located.line, ch: located.fence.length});
+	}
+
+	private persistBlockWidth(ctx: MarkdownPostProcessorContext, el: HTMLElement, source: string, width: number): void {
+		this.persistFenceUpdate(ctx, el, source, (fence) => setFenceWidth(fence, width));
 	}
 
 	async loadSettings(): Promise<void> {

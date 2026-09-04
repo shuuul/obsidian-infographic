@@ -8,12 +8,14 @@ export interface InfographicSettings {
 	autoRender: boolean;
 	theme: ThemeSetting;
 	errorBehavior: ErrorBehavior;
+	centerByDefault: boolean;
 }
 
 export const DEFAULT_SETTINGS: InfographicSettings = {
 	autoRender: true,
 	theme: "auto",
 	errorBehavior: "show-code",
+	centerByDefault: false,
 };
 
 export class InfographicSettingTab extends PluginSettingTab {
@@ -46,6 +48,11 @@ export class InfographicSettingTab extends PluginSettingTab {
 					defaultValue: DEFAULT_SETTINGS.theme,
 					options: {auto: "Auto (follow Obsidian)", light: "Light", dark: "Dark"},
 				},
+			},
+			{
+				name: "Center blocks by default",
+				desc: "Render infographic blocks centered horizontally. Override per block with the align=center / align=left fence parameter",
+				control: {key: "centerByDefault", type: "toggle", defaultValue: DEFAULT_SETTINGS.centerByDefault},
 			},
 			{
 				name: "Error behavior",

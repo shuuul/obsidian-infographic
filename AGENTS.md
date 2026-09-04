@@ -108,7 +108,7 @@ flowchart LR
 | Module | Responsibility |
 |--------|----------------|
 | `src/main.ts` | Plugin lifecycle, code-block processor registration, commands, error handling, orchestrates print vs. normal render paths. |
-| `src/settings.ts` | Declarative settings (`autoRender`, `theme`, `errorBehavior`) via `getSettingDefinitions()`; requires `minAppVersion` 1.13.0. |
+| `src/settings.ts` | Declarative settings (`autoRender`, `theme`, `errorBehavior`, `centerByDefault`) via `getSettingDefinitions()`; requires `minAppVersion` 1.13.0. |
 | `src/parser/InfographicParser.ts` | Validates source as either valid JSON (if starts with `{`) or passes DSL through as plain text. |
 | `src/renderer/InfographicView.ts` | Live `InfographicRenderChild` wrapper; handles loading, resize, aspect ratio from SVG viewBox, and schedules print snapshots. |
 | `src/renderer/printSnapshot.ts` | Static snapshot generation for PDF export, DOM extraction fallback, and `beforeprint` refresh. |
@@ -172,6 +172,7 @@ The release-please action uses the built-in `GITHUB_TOKEN`, so the repository mu
 - **AntV `Infographic` lifecycle**: `destroy()` is wrapped in `try/catch` because it may throw if already destroyed.
 - **Popout-window compatibility**: Follow the obsidianmd lint guidance: timer functions use `window.setTimeout`/`window.requestAnimationFrame` (so timers survive popout window close); `activeWindow`/`activeDocument` are still used for document access, event registration (`beforeprint`), and dark-mode checks; elements are created via Obsidian helpers (`doc.win.createEl`/`createDiv`). The `Window` DOM-helper types live in `src/types/obsidian-window.ts` because obsidian.d.ts does not model them on `Window`.
 - **Declarative settings (Obsidian 1.13+)**: `InfographicSettingTab` implements `getSettingDefinitions()` and `manifest.json` sets `minAppVersion: "1.13.0"`. Do not reintroduce a legacy `display()` method.
+- **Per-block fence params**: `width=N` and `align=center|left` are parsed from the fence line and written back on drag/Center. In live preview `ctx.getSectionInfo(el)` may describe an unrelated section — always validate it with `isInfographicFence()` and fall back to `findUniqueBlockFence()` content matching.
 - **Aspect ratio**: Derived from the rendered SVG `viewBox` or bounding rect; defaults to `4/3` before first render.
 - **Error behavior**: `show-code` (default) renders the source block; `show-error` shows only the error with a "View details" button; `hide` empties the element.
 - **Settings no longer include `maxWidth`/`maxHeight`**: those keys were removed from `InfographicSettings`; the README still mentions them but the code does not use them. Width is driven by container size and aspect ratio.

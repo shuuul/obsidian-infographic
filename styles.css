@@ -71,6 +71,23 @@
 	user-select: none;
 }
 
+/* Centered block state (toolbar Center button / `centered` fence flag) */
+.infographic-wrapper.infographic-centered {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.infographic-center-btn-active {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-color: var(--interactive-accent);
+}
+
+.infographic-center-btn-active:hover {
+	background: var(--interactive-accent-hover);
+	color: var(--text-on-accent);
+}
+
 .infographic-print {
 	display: none;
 }

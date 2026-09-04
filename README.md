@@ -24,6 +24,7 @@ Render [AntV Infographic](https://github.com/antvis/Infographic) visualizations 
 - 🌓 **Theme Support** - Auto-detect or force light/dark mode
 - 📐 **Responsive Design** - Automatic resize handling
 - ↔️ **Drag to Resize** - Drag the side handles to adjust a block's width; persisted per block via a `width=N` fence parameter
+- 🎯 **Centering** - Center a block from the toolbar, per block via `align=center`, or enable "Center blocks by default" in settings
 - 🔄 **Live Reload** - Refresh all infographics with a single command
 
 ## 📦 Installation
@@ -57,6 +58,7 @@ Create an infographic using a fenced code block with the `infographic` language:
 Optional fence parameters:
 
 - `width=N` - Fixed block width in px (e.g. <code>```infographic width=600</code>). You can also drag the handles on either side of a rendered block to resize it; the width is written back to the fence automatically when editing in Source mode.
+- `align=center` / `align=left` - Horizontal alignment, overriding the "Center blocks by default" setting. Toggle from the toolbar's **Center** button as well.
 
 ### JSON Format
 
