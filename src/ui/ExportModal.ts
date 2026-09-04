@@ -59,7 +59,7 @@ export class ExportModal extends Modal {
 
 	private downloadDataUrl(dataUrl: string, filename: string): void {
 		const doc = activeWindow.document;
-		const link = doc.createElement("a");
+		const link = doc.win.createEl("a");
 		link.href = dataUrl;
 		link.download = filename;
 		doc.body.appendChild(link);

@@ -4,8 +4,6 @@ import {Infographic, type InfographicOptions} from "@antv/infographic";
 import type {ThemeSetting} from "../settings";
 import {persistSnapshotDataUrl} from "./snapshotFileCache";
 
-declare const activeWindow: Window;
-
 export interface RenderOptions {
 	app: App;
 	cacheDir: string;
@@ -200,7 +198,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 
 	private cleanup(): void {
 		if (this.snapshotRefreshTimer) {
-			activeWindow.clearTimeout(this.snapshotRefreshTimer);
+			window.clearTimeout(this.snapshotRefreshTimer);
 			this.snapshotRefreshTimer = null;
 		}
 		if (this.resizeObserver) {
@@ -232,8 +230,8 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	}
 
 	private schedulePrintSnapshotRefresh(): void {
-		if (this.snapshotRefreshTimer) activeWindow.clearTimeout(this.snapshotRefreshTimer);
-		this.snapshotRefreshTimer = activeWindow.setTimeout(() => {
+		if (this.snapshotRefreshTimer) window.clearTimeout(this.snapshotRefreshTimer);
+		this.snapshotRefreshTimer = window.setTimeout(() => {
 			this.snapshotRefreshTimer = null;
 			void this.generatePrintSnapshot();
 		}, 250);

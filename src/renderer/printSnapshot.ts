@@ -94,9 +94,9 @@ export function refreshAllInfographicPrintSnapshots(root: ParentNode = activeWin
  */
 async function waitForRender(frames: number = 3): Promise<void> {
 	for (let i = 0; i < frames; i++) {
-		await new Promise((resolve) => activeWindow.requestAnimationFrame(resolve));
+		await new Promise((resolve) => window.requestAnimationFrame(resolve));
 	}
-	await new Promise((resolve) => activeWindow.setTimeout(resolve, 50));
+	await new Promise((resolve) => window.setTimeout(resolve, 50));
 }
 
 /**
@@ -113,7 +113,7 @@ export async function renderStaticSnapshotDirect(
 	targetEl: HTMLElement
 ): Promise<void> {
 	// Create off-screen container with clip-path (not visibility:hidden) so browsers render it
-	const tempContainer = activeWindow.document.createElement("div");
+	const tempContainer = activeWindow.document.win.createDiv();
 	tempContainer.addClass("infographic-offscreen-render");
 	tempContainer.style.cssText = `
 		position: fixed;

@@ -169,7 +169,7 @@ export default class InfographicPlugin extends Plugin {
 		renderChild.ensureStarted();
 
 		// Populate print snapshot after the live render has had a chance to paint.
-		activeWindow.requestAnimationFrame(() => refreshInfographicPrintSnapshot(container, this.app, cacheDir));
+		window.requestAnimationFrame(() => refreshInfographicPrintSnapshot(container, this.app, cacheDir));
 
 		// Force-generate a static snapshot into the print container so that PDF export
 		// always has a ready <img>, even if .print detection fails or happens late.
