@@ -228,13 +228,19 @@
 /* Toolbar buttons */
 .infographic-toolbar-btn {
 	font-size: 12px;
-	padding: 4px 8px;
+	padding: 4px 6px;
 	cursor: pointer;
 	background: var(--background-modifier-hover);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 4px;
 	color: var(--text-muted);
 	margin-left: 4px;
+}
+
+.infographic-toolbar-btn svg {
+	display: block;
+	width: 14px;
+	height: 14px;
 }
 
 .infographic-toolbar-btn:hover {

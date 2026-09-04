@@ -1,4 +1,4 @@
-import {Editor, MarkdownPostProcessorContext, MarkdownView, Notice, Plugin} from "obsidian";
+import {Editor, MarkdownPostProcessorContext, MarkdownView, Notice, Plugin, setIcon} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
@@ -308,9 +308,10 @@ export default class InfographicPlugin extends Plugin {
 		const toolbar = container.createDiv({cls: "infographic-toolbar"});
 
 		const centerBtn = toolbar.createEl("button", {
-			text: "Center",
 			cls: "infographic-toolbar-btn infographic-center-btn",
 		});
+		centerBtn.setAttribute("aria-label", "Center");
+		setIcon(centerBtn, "align-center");
 		centerBtn.setAttribute("aria-pressed", String(centered));
 		centerBtn.toggleClass("infographic-center-btn-active", centered);
 		centerBtn.addEventListener("click", () => {
@@ -327,9 +328,10 @@ export default class InfographicPlugin extends Plugin {
 		});
 
 		const copyBtn = toolbar.createEl("button", {
-			text: "Copy",
 			cls: "infographic-toolbar-btn",
 		});
+		copyBtn.setAttribute("aria-label", "Copy source");
+		setIcon(copyBtn, "copy");
 		copyBtn.addEventListener("click", () => {
 			navigator.clipboard.writeText(source.trim()).then(() => {
 				new Notice("Copied to clipboard");
@@ -339,9 +341,10 @@ export default class InfographicPlugin extends Plugin {
 		});
 
 		const exportBtn = toolbar.createEl("button", {
-			text: "Export",
 			cls: "infographic-toolbar-btn",
 		});
+		exportBtn.setAttribute("aria-label", "Export as PNG or SVG");
+		setIcon(exportBtn, "download");
 		exportBtn.addEventListener("click", () => {
 				const infographic = renderChild.getInfographic();
 				if (infographic) {
