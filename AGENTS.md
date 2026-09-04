@@ -14,7 +14,7 @@ Obsidian plugin that renders [AntV Infographic](https://github.com/antvis/Infogr
 ./
 ├── src/                              # TypeScript source (DO NOT edit main.js directly)
 │   ├── main.ts                       # Plugin entry: lifecycle, commands, code-block processor
-│   ├── settings.ts                   # Settings schema + settings tab UI
+│   ├── settings.ts                   # Declarative settings schema + settings tab (Obsidian 1.13+)
 │   ├── parser/
 │   │   ├── InfographicParser.ts      # JSON / DSL validation
 │   │   └── index.ts                  # Parser barrel exports
@@ -23,10 +23,12 @@ Obsidian plugin that renders [AntV Infographic](https://github.com/antvis/Infogr
 │   │   ├── printSnapshot.ts          # Static snapshot generation for PDF export
 │   │   ├── snapshotFileCache.ts      # Vault file persistence for snapshot data URLs
 │   │   └── index.ts                  # Renderer barrel exports
-│   └── ui/
+│   ├── ui/
 │       ├── ExportModal.ts            # PNG/SVG export modal
 │       ├── SourceModal.ts            # Source-code viewer modal
 │       └── index.ts                  # UI barrel exports
+│   └── types/
+│       └── obsidian-window.ts        # Window augmentation for Obsidian DOM helpers (createEl/createDiv)
 ├── skills/obsidian-infographic/      # Agent skill for OhMyOpenCode
 │   ├── SKILL.md                      # Skill definition + quick reference
 │   └── reference/
@@ -52,9 +54,9 @@ Obsidian plugin that renders [AntV Infographic](https://github.com/antvis/Infogr
 | Language | TypeScript 5.9 | Strict TS with `strictNullChecks`, `noUncheckedIndexedAccess` |
 | Runtime | Node.js 20.x / 22.x | CI matrix; ES modules (`"type": "module"`) |
 | Plugin host | Obsidian API `^1.13.1` | Markdown code-block processor, modals, settings |
-| Visualization | `@antv/infographic` `^0.2.19` | SVG/canvas infographic rendering |
-| Bundler | esbuild 0.28.1 | Dev watch + production CJS bundle to `main.js` |
-| Lint | typescript-eslint 8.62 + eslint-plugin-obsidianmd 0.1.9 | Type-aware lint for Obsidian plugin rules |
+| Visualization | `@antv/infographic` `^0.2.20` | SVG/canvas infographic rendering |
+| Bundler | esbuild 0.28.2 | Dev watch + production CJS bundle to `main.js` |
+| Lint | eslint 10 + typescript-eslint 8.69 + eslint-plugin-obsidianmd 0.4.2 | Type-aware lint for Obsidian plugin rules |
 | Build orchestration | npm scripts (`package.json`) | `dev`, `build`, `lint`, `version` |
 
 ## Development Commands
@@ -105,7 +107,7 @@ flowchart LR
 | Module | Responsibility |
 |--------|----------------|
 | `src/main.ts` | Plugin lifecycle, code-block processor registration, commands, error handling, orchestrates print vs. normal render paths. |
-| `src/settings.ts` | Settings schema (`autoRender`, `theme`, `errorBehavior`) and Obsidian settings tab UI. |
+| `src/settings.ts` | Declarative settings (`autoRender`, `theme`, `errorBehavior`) via `getSettingDefinitions()`; requires `minAppVersion` 1.13.0. |
 | `src/parser/InfographicParser.ts` | Validates source as either valid JSON (if starts with `{`) or passes DSL through as plain text. |
 | `src/renderer/InfographicView.ts` | Live `InfographicRenderChild` wrapper; handles loading, resize, aspect ratio from SVG viewBox, and schedules print snapshots. |
 | `src/renderer/printSnapshot.ts` | Static snapshot generation for PDF export, DOM extraction fallback, and `beforeprint` refresh. |
@@ -166,7 +168,8 @@ The release-please action uses the built-in `GITHUB_TOKEN`, so the repository mu
 - **PDF export has two paths**: direct `renderStaticSnapshotDirect` when `.print` is detected, plus a hidden `.infographic-print` snapshot in normal mode that is refreshed by `beforeprint` and `ResizeObserver`-driven timers.
 - **Snapshot persistence is best-effort**: `persistSnapshotDataUrl` may fail silently; the data URL remains the primary render source.
 - **AntV `Infographic` lifecycle**: `destroy()` is wrapped in `try/catch` because it may throw if already destroyed.
-- **Popout-window compatibility**: Source code uses `activeWindow` (provided by Obsidian) instead of the global `window`/`document` for timers, DOM creation, and dark-mode checks. This keeps the plugin working in Obsidian popout windows where the global window/document may differ from the active pane.
+- **Popout-window compatibility**: Follow the obsidianmd lint guidance: timer functions use `window.setTimeout`/`window.requestAnimationFrame` (so timers survive popout window close); `activeWindow`/`activeDocument` are still used for document access, event registration (`beforeprint`), and dark-mode checks; elements are created via Obsidian helpers (`doc.win.createEl`/`createDiv`). The `Window` DOM-helper types live in `src/types/obsidian-window.ts` because obsidian.d.ts does not model them on `Window`.
+- **Declarative settings (Obsidian 1.13+)**: `InfographicSettingTab` implements `getSettingDefinitions()` and `manifest.json` sets `minAppVersion: "1.13.0"`. Do not reintroduce a legacy `display()` method.
 - **Aspect ratio**: Derived from the rendered SVG `viewBox` or bounding rect; defaults to `4/3` before first render.
 - **Error behavior**: `show-code` (default) renders the source block; `show-error` shows only the error with a "View details" button; `hide` empties the element.
 - **Settings no longer include `maxWidth`/`maxHeight`**: those keys were removed from `InfographicSettings`; the README still mentions them but the code does not use them. Width is driven by container size and aspect ratio.
