@@ -25,6 +25,52 @@
 	margin: 1em 0;
 }
 
+/* Drag handles on both sides of the block for width adjustment */
+.infographic-resize-handle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 12px;
+	z-index: 11;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: ew-resize;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	touch-action: none;
+}
+
+.infographic-resize-left {
+	left: -6px;
+}
+
+.infographic-resize-right {
+	right: -6px;
+}
+
+.infographic-wrapper:hover .infographic-resize-handle,
+.infographic-wrapper.infographic-resizing .infographic-resize-handle {
+	opacity: 1;
+}
+
+.infographic-resize-handle::before {
+	content: "";
+	width: 4px;
+	height: 56px;
+	border-radius: 2px;
+	background: var(--background-modifier-border);
+	transition: background 0.2s ease;
+}
+
+.infographic-resize-handle:hover::before {
+	background: var(--interactive-accent);
+}
+
+.infographic-wrapper.infographic-resizing {
+	user-select: none;
+}
+
 .infographic-print {
 	display: none;
 }
@@ -37,7 +83,7 @@
 	position: absolute;
 	bottom: 4px;
 	right: 4px;
-	z-index: 10;
+	z-index: 12;
 	opacity: 0;
 	transition: opacity 0.2s ease;
 	display: flex;
@@ -254,6 +300,10 @@
 		display: none !important;
 	}
 
+	.infographic-resize-handle {
+		display: none !important;
+	}
+
 	/* Default: keep live visible (some export paths might not have snapshots ready). */
 	.infographic-render {
 		display: block !important;
@@ -291,6 +341,10 @@
  * These rules mirror the @media print behavior but do not rely on media queries.
  */
 .print .infographic-toolbar {
+	display: none !important;
+}
+
+.print .infographic-resize-handle {
 	display: none !important;
 }
 

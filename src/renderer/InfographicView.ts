@@ -13,6 +13,10 @@ export interface RenderOptions {
 	isDarkMode: boolean;
 	/** True when Obsidian is in PDF export mode */
 	isPrinting?: boolean;
+	/** Fence-level width override in px (```infographic width=N) */
+	explicitWidth?: number;
+	/** Called after a drag-resize commits, so the host can persist the width. */
+	onWidthCommit?: (width: number) => void;
 }
 
 interface ParsedInfographicConfig {
@@ -24,6 +28,7 @@ interface ParsedInfographicConfig {
 }
 
 const DEFAULT_ASPECT_RATIO = 4 / 3;
+const MIN_DRAG_WIDTH = 200;
 
 export class InfographicRenderChild extends MarkdownRenderChild {
 	private infographic: Infographic | null = null;
@@ -61,6 +66,7 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 		this.showLoading();
 		this.render();
 		this.setupResizeObserver();
+		this.setupResizeHandles();
 	}
 
 	private getTheme(): string | undefined {
@@ -87,18 +93,21 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	private render(): void {
 		const theme = this.getTheme();
 		const containerWidth = this.containerEl.parentElement?.clientWidth ?? 800;
-		const width = containerWidth;
+		const width = this.options.explicitWidth ?? containerWidth;
 		const height = width / DEFAULT_ASPECT_RATIO;
 
 		try {
 			if (this.options.isJson) {
 				const parsed = JSON.parse(this.options.content) as ParsedInfographicConfig;
+				// A fence-level explicitWidth overrides the JSON canvas size so the
+				// drag handles and the rendered canvas stay in sync.
+				const {width: jsonWidth, height: jsonHeight, theme: jsonTheme, ...rest} = parsed;
 				this.infographic = new Infographic({
 					container: this.containerEl,
-					width: parsed.width ?? width,
-					height: parsed.height ?? height,
-					theme: parsed.theme ?? theme,
-					...parsed,
+					width: this.options.explicitWidth ?? jsonWidth ?? width,
+					height: this.options.explicitWidth ? width / this.aspectRatio : jsonHeight ?? height,
+					theme: jsonTheme ?? theme,
+					...rest,
 				});
 				this.infographic.render();
 			} else {
@@ -146,9 +155,71 @@ export class InfographicRenderChild extends MarkdownRenderChild {
 	private renderError(message: string): void {
 		this.containerEl.empty();
 		this.containerEl.addClass("infographic-error");
-		
+
 		const errorDiv = this.containerEl.createDiv({cls: "infographic-error-message"});
 		errorDiv.setText(`Failed to render infographic: ${message}`);
+	}
+
+	/**
+	 * Drag handles on both sides of the block: dragging adjusts the wrapper
+	 * width, the ResizeObserver keeps the canvas in sync. The final width is
+	 * persisted by the host via onWidthCommit.
+	 */
+	private setupResizeHandles(): void {
+		const wrapper = this.containerEl.closest<HTMLElement>(".infographic-wrapper");
+		if (!wrapper) return;
+
+		for (const side of ["left", "right"] as const) {
+			const handle = wrapper.createDiv({cls: `infographic-resize-handle infographic-resize-${side}`});
+			handle.setAttribute("aria-hidden", "true");
+			this.registerDomEvent(handle, "pointerdown", (down: PointerEvent) => {
+				down.preventDefault();
+				const maxWidth = wrapper.parentElement?.clientWidth ?? wrapper.clientWidth;
+				const startWidth = wrapper.clientWidth || maxWidth;
+				const startX = down.clientX;
+				let latestWidth = startWidth;
+				let frame: number | null = null;
+				wrapper.addClass("infographic-resizing");
+				try {
+					handle.setPointerCapture(down.pointerId);
+				} catch {
+					// Synthetic pointers (e.g. automated tests) have no active pointer id.
+				}
+
+				const apply = () => {
+					frame = null;
+					this.applyWrapperWidth(wrapper, latestWidth);
+				};
+				const onMove = (move: PointerEvent) => {
+					const dx = move.clientX - startX;
+					const raw = side === "left" ? startWidth - dx : startWidth + dx;
+					latestWidth = Math.max(MIN_DRAG_WIDTH, Math.min(maxWidth, Math.round(raw)));
+					if (frame === null) {
+						frame = window.requestAnimationFrame(apply);
+					}
+				};
+				const onEnd = () => {
+					handle.removeEventListener("pointermove", onMove);
+					handle.removeEventListener("pointerup", onEnd);
+					handle.removeEventListener("pointercancel", onEnd);
+					if (frame !== null) {
+						window.cancelAnimationFrame(frame);
+						frame = null;
+					}
+					wrapper.removeClass("infographic-resizing");
+					this.applyWrapperWidth(wrapper, latestWidth);
+					this.options.onWidthCommit?.(latestWidth);
+				};
+				handle.addEventListener("pointermove", onMove);
+				handle.addEventListener("pointerup", onEnd);
+				handle.addEventListener("pointercancel", onEnd);
+			});
+		}
+	}
+
+	private applyWrapperWidth(wrapper: HTMLElement, width: number): void {
+		wrapper.style.width = `${width}px`;
+		wrapper.addClass("infographic-has-width");
 	}
 
 	private updateAspectRatioFromSVG(): void {

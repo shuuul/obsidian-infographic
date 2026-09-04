@@ -1,4 +1,4 @@
-import {Editor, MarkdownView, Notice, Plugin} from "obsidian";
+import {Editor, MarkdownPostProcessorContext, MarkdownView, Notice, Plugin} from "obsidian";
 import {DEFAULT_SETTINGS, InfographicSettings, InfographicSettingTab} from "./settings";
 import {parseInfographicSpec, showParseError} from "./parser";
 import {InfographicRenderChild} from "./renderer";
@@ -13,6 +13,45 @@ import {SourceCodeModal, ExportModal} from "./ui";
 function isPrintingMode(doc: Document): boolean {
 	return Boolean(doc.body.querySelectorAll("body > .print").length > 0) ||
 		doc.body.classList.contains("print");
+}
+
+/**
+ * Rewrite an ```infographic fence line so it carries `width=N`, preserving
+ * any other fence parameters.
+ */
+function setFenceWidth(fence: string, width: number): string {
+	const match = fence.match(/^(`{3,})\s*infographic\b(.*)$/);
+	if (!match) return fence;
+	const rest = (match[2] ?? "").replace(/\s+width\s*=\s*\d+/i, "").trim();
+	return `${match[1]} infographic${rest ? ` ${rest}` : ""} width=${width}`;
+}
+
+/**
+ * Locate the section inside the editor by matching its lines. Returns the
+ * fence line number only when exactly one match exists, so ambiguous blocks
+ * are never edited.
+ */
+function findUniqueSectionStart(editor: Editor, section: string[]): number | null {
+	const first = section[0];
+	if (first === undefined) return null;
+	const last = section.length - 1;
+	let found: number | null = null;
+	let matches = 0;
+	for (let line = 0; line + last <= editor.lastLine(); line++) {
+		if (editor.getLine(line) !== first) continue;
+		let ok = true;
+		for (let offset = 1; offset <= last; offset++) {
+			if (editor.getLine(line + offset) !== section[offset]) {
+				ok = false;
+				break;
+			}
+		}
+		if (ok) {
+			matches++;
+			found = line;
+		}
+	}
+	return matches === 1 ? found : null;
 }
 
 declare const activeWindow: Window;
@@ -150,6 +189,12 @@ export default class InfographicPlugin extends Plugin {
 		// Normal (non-PDF) mode: create wrapper with live renderer
 		const container = el.createDiv({cls: "infographic-wrapper"});
 
+		const fenceWidth = this.parseFenceWidth(ctx, el);
+		if (fenceWidth !== null) {
+			container.style.width = `${fenceWidth}px`;
+			container.addClass("infographic-has-width");
+		}
+
 		const renderContainer = container.createDiv({cls: "infographic-render"});
 		// Print-only fallback snapshot container (populated with a static <img>).
 		// Created but not stored - refreshInfographicPrintSnapshot queries for it.
@@ -163,6 +208,8 @@ export default class InfographicPlugin extends Plugin {
 			theme: this.settings.theme,
 			isDarkMode: this.isDarkMode(),
 			isPrinting: false,
+			explicitWidth: fenceWidth ?? undefined,
+			onWidthCommit: (width: number) => this.persistBlockWidth(ctx, el, width),
 		});
 		ctx.addChild(renderChild);
 		// Ensure rendering even in pipelines that don't call MarkdownRenderChild.onload (e.g. PDF export).
@@ -244,6 +291,48 @@ export default class InfographicPlugin extends Plugin {
 				break;
 			}
 		}
+	}
+
+	/**
+	 * Read a fence-level width override (```infographic width=N) from the
+	 * section's first line. Returns null when absent or out of range.
+	 */
+	private parseFenceWidth(ctx: MarkdownPostProcessorContext, el: HTMLElement): number | null {
+		const info = ctx.getSectionInfo(el);
+		const fence = info?.text.split("\n")[0];
+		if (!fence) return null;
+		const match = fence.match(/\bwidth\s*=\s*(\d+)\b/i);
+		if (!match) return null;
+		const width = Number(match[1]);
+		if (!Number.isFinite(width) || width < 200) return null;
+		const available = el.clientWidth || width;
+		return Math.min(width, available);
+	}
+
+	/**
+	 * Best-effort persistence of a drag-resized width: rewrite the block's
+	 * fence line in the live editor. Skipped in reading mode, in hover
+	 * previews of other files, and when the section cannot be located
+	 * unambiguously, so user content is never edited ambiguously.
+	 */
+	private persistBlockWidth(ctx: MarkdownPostProcessorContext, el: HTMLElement, width: number): void {
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!view || view.getMode() !== "source") return;
+		const filePath = ctx.sourcePath.split("#")[0];
+		if (!view.file || view.file.path !== filePath) return;
+		const info = ctx.getSectionInfo(el);
+		if (!info) return;
+		const fence = info.text.split("\n")[0];
+		if (!fence) return;
+		const updatedFence = setFenceWidth(fence, width);
+		if (updatedFence === fence) return;
+		// Prefer the rendered-at line position, fall back to a unique text
+		// match in case earlier edits shifted the section.
+		const line = view.editor.getLine(info.lineStart) === fence
+			? info.lineStart
+			: findUniqueSectionStart(view.editor, info.text.split("\n"));
+		if (line === null) return;
+		view.editor.replaceRange(updatedFence, {line, ch: 0}, {line, ch: fence.length});
 	}
 
 	async loadSettings(): Promise<void> {
